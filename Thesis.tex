@@ -1,0 +1,337 @@
+\documentclass[11pt]{report}
+
+% PACKAGES 
+	\usepackage[a4paper,left=28mm,right=28mm,top=30mm,bottom=30mm]{geometry}
+	\usepackage{graphicx}		% Used to import external graphics (figures)
+	\usepackage[table]{xcolor}	% To include colors 
+	\usepackage{amsmath}   		% For most of the math symbols and environments (such as \begin{align})
+	\usepackage{amssymb}		% For using symbols in the document
+	\usepackage{float}			% Arranging of figures on the page
+	\usepackage[bf]{caption}	% Arranging the captions in floating environments [bf] makes the Figures bold
+	\usepackage{subcaption}     % To arrange captions of subfigures
+	\usepackage{booktabs} 		% For standard tabular tables, with rules
+	\usepackage{tabularx}	    % For clean tables such as in the Nomenclature
+	\usepackage{fancyhdr} 		% Fancy headers
+	\usepackage[colorinlistoftodos]{todonotes}		% To create todo notes
+	\usepackage[nottoc,notlot,notlof]{tocbibind}    % Add bibliography to content
+	\usepackage{bm}				% Make bold symbols
+	\usepackage[auto-lang=false]{lipsum}
+	\usepackage{hyperref}		% Used for referring to links inside and outside the document
+% LAY-OUT 
+
+	%Bibliography for references, with reference style options
+	\usepackage[
+	backend=biber,
+	bibstyle=ieee,
+	citestyle=numeric-comp,
+	dashed=false,
+	url = false,
+	maxnames=8,
+	maxcitenames=2,
+	mincitenames=1,
+	sorting=none,
+	isbn = false,
+	doi = false
+	]{biblatex}
+	\addbibresource{references.bib}
+
+	%Set the page style
+	\pagestyle{fancy}
+	\fancyhead[L]{\ifodd\value{page} \slshape\nouppercase{\rightmark} \else \fi}
+	\fancyhead[R]{\ifodd\value{page} \else \slshape\nouppercase{\leftmark} \fi}
+	\chead{ }
+	\lfoot{}
+	\rfoot{}
+	\cfoot{\small\thepage}
+
+
+	%Give colors to links/refs etc
+	\hypersetup{colorlinks,	linkcolor={blue!0!black}, 
+							citecolor={blue!70!black}, 
+							 urlcolor={blue!80!}} 
+						 
+	%% Set up numbering and spacing
+	\numberwithin{equation}{chapter}		%Number the equations per section
+	\numberwithin{figure}{chapter}			%Number the figures per section
+	\numberwithin{table}{chapter}			%Number the tables per section
+	\captionsetup[table]{skip=1pt}			%Skip 1 pt after a table
+	\captionsetup[figure]{skip=3.5pt}		%Skip 4 pt after a figure
+	\setcounter{secnumdepth}{3}				%Count up to the subsubsection 
+	\setcounter{topnumber}{1}				%Number of floats at top of a page (default is 2)
+% DEFINITIONS
+	%% Titlepage definitions
+	\newcommand{\deltitle}{Your MSc Project title}        %Your project title
+	\newcommand{\StudentName}{A. Surname}               %Student name
+	\newcommand{\StudentID}{xxxxxxx}                    %Your student number
+	\newcommand{\DCcode}{2021.001}                      %Get your DC code from the D&C secretariat
+
+	%% Operators
+	\DeclareMathOperator\sign{sgn}                      %Sign function
+	\DeclareMathOperator\diag{diag}                     %Diagonal operator
+	\DeclareMathOperator\imag{Imag}                     %Imaginary part of complex variable
+	\DeclareMathOperator\real{Real}                     %Real part of complex variable
+	\DeclareMathOperator*{\argmin}{\arg\!\min}          %Argmin operator
+	\newcommand{\norm}[1]{\left\lVert#1\right\rVert}    %Norm operator
+
+	%% Variable definition
+	\newcommand{\R}{\mathbb{R}}                         % Set of real numbers
+	\newcommand{\C}{\mathbb{C}}                         % Set of complex numbers
+
+\begin{document}
+
+% TITLE PAGE
+	\hypersetup{pageanchor=false}
+	\begin{titlepage}
+	\centering
+	\includegraphics[scale=1.9]{graphics/TUE-logo.pdf}\\[0mm]
+	\begin{center}
+		{\Large Department of Mechanical Engineering}\\[2mm]
+		{\Large Dynamics and Control section}\\[20mm]
+	\end{center}
+
+	% Project-specific information, see "DEFINITIONS" above
+	\begin{center}
+		{\Huge \deltitle}\\[2mm]
+		{\Large Master thesis}\\[2mm]
+		{\large \StudentName \ (\StudentID)}\\[1mm]
+		{\large DC \DCcode}\\[70mm]
+	\end{center}
+		
+	% Coaching, supervision and committee
+	\flushleft\large {\textbf{Coaches:}} \\
+	{prof. dr. ir. E.X. Ample}   \\    
+	{title. Int. Surname (External Institution, City, Country)}  \\ % for not TU/e faculty, mention explicitly the institution
+
+
+	\flushleft\large {\textbf{Supervisor:}} \\
+	{prof. dr. ir. S.U. per Visor}             \\
+
+	\flushleft\large {\textbf{Additional MSc Committee members:}} \\
+	{title. A. Surname}  \\  
+	{title. A.N. Other Surname (External Institution, City, Country)}  \\  % for not TU/e faculty, mention explicitly the institution
+	{ir. A.N. Other}                 
+
+	% Location and date of writing
+	\vfill\center Eindhoven, DD Mmm YYYY \\ % put date of defence
+		
+	\end{titlepage}
+
+	\hypersetup{pageanchor=true}
+
+	\thispagestyle{empty} \ \newpage								%Empty page
+	\pagenumbering{roman}											%Set page numbering to Roman numerals
+% ABSTRACT
+	\chapter*{Abstract}
+	\addcontentsline{toc}{chapter}{Abstract}						%Add Abstract to Contents list
+	\lipsum[3-6]
+
+	\newpage
+	\thispagestyle{empty} \ \newpage								%Empty page
+% ACKNOWLEDGEMENTS
+	% Acknowledgements are optional, comment or remove this section if not preferred
+	\chapter*{Acknowledgments}
+	\addcontentsline{toc}{chapter}{Acknowledgements}    			%Add Acknowledgments to Contents list
+	\lipsum[3-6]
+
+	\newpage
+	\thispagestyle{empty} \ \newpage								%Empty page
+% TABLE OF CONTENTS
+	\addcontentsline{toc}{chapter}{Contents}    			        %Add Contents to Contents list
+	\tableofcontents\newpage 		 								%Table of contents
+	\thispagestyle{empty} \ \newpage								%Empty page
+% NOMENCLATURE
+	\chapter*{Nomenclature}
+	\addcontentsline{toc}{chapter}{Nomenclature}					%Add Nomenclature to contents list
+	\markboth{Nomenclature}{Nomenclature} 
+	\thispagestyle{empty}
+
+	\textbf{Groups, algebras, and sets}\\[3mm]
+	\begin{tabularx}{\textwidth}{p{2.5cm}X}
+		$\C$            & The set of complex numbers                        \\
+		$\R$            & The set of real numbers                           \\
+		$\R^+$          & The set of non-negative real numbers      
+	\end{tabularx}\\
+
+	\vspace{0.5cm}
+	\noindent\textbf{Roman symbols}\\[3mm]
+	\begin{tabularx}{\textwidth}{p{2.5cm}X}
+		$t$             & Global time                                       \\
+		$x$             & State variable                                    
+	\end{tabularx}
+
+	\vspace{0.5cm}
+	\noindent\textbf{Greek symbols}\\[3mm]
+	\begin{tabularx}{\textwidth}{p{2.5cm}X}
+		$\Delta t$         & Time interval of a time-step                   \\
+		$\delta$           & Dirac delta function                           \\
+		$\delta_k$         & Kronecker delta function                       
+	\end{tabularx}
+
+	\vspace{0.5cm}
+	\noindent\textbf{Subscripts and superscripts}\\[3mm]
+	\begin{tabularx}{\textwidth}{p{2.5cm}X}
+		$\dot{(\cdot)}$    & First time derivative                          \\
+		$\ddot{(\cdot)}$   & Second time derivative                         \\
+		$\hat{(\cdot)}$    & Estimated or approximate variable              \\
+		$\bar{(\cdot)}$    & Mean or expected value                         
+	\end{tabularx}\\
+
+
+	\hypersetup{linkcolor={blue!70!black}}		            		%Change the link color
+	\newpage
+	\thispagestyle{empty} \ \newpage
+
+% INTRODUCTION
+	\chapter{Introduction} \label{ch:Intro}
+	\pagenumbering{arabic}						            		%Set numbering to arabic
+	This template is used for master students writing their Master thesis within the Dynamics and Control Section of the Mechanical Engineering department of the Eindhoven University of Technology. 
+
+	\section{Template usage}
+	This template is intended as an initial setup for any user Master thesis and is contained in this single .tex file. However, to function it requires a folder named ``graphics", containing the graphics referenced in this report and a ``references.bib" file for your bibliography. While all is contained in this single .tex file, one can choose to separate it into several .tex files, called using ``\textbackslash{}input\{example.tex\}".
+
+	\section{Overleaf integration}
+	\begin{description}
+	\item[File synchronization] Synchronization with your local environment, for example to automatically upload locally generated figures to Overleaf, is possible via Dropbox. To this end, click the "Menu" button in the top-left corner and select ``Sync $\rightarrow$ Dropbox". Once connected, your overleaf projects are contained in your Dropbox, which can be synchronized locally by installing Dropbox's app.
+	\item[Mendeley synchronization] If using Mendeley for reference management, your references can be synced automatically with overleaf. To achieve this, click the ``New File" button on the left and select ``From Mendeley". After connecting your accounts, you can add a .bib file containing all your references automatically.
+	\end{description}
+
+
+	\section{General rules for Master theses}
+	\subsection{Abbreviations and Acronyms} Define abbreviations and acronyms the first time they are used in the text, even after they have been defined in the abstract. Do not use abbreviations in the title or heads unless they are unavoidable.
+
+	\subsection{Chapters}
+	Make sure chapters always start on an uneven page, such that, when printed, all your chapters start on a right page. Empty pages can be added to ensure this condition. Also make sure to end your main chapters with a summary. Always refer to specific chapters, sections, figures and tables with a capital, such as Chapter \ref{ch:Intro}. However, do not use capital when refering to chapters, etc., in general such as in the sentence ``In the remaining chapters, ...".
+
+	\subsection{Units}
+
+	\begin{itemize}
+	\item Use SI as primary units. English units may be used as secondary units (in parentheses). An exception would be the use of English units as identifiers in trade, such as 3.5-inch disk drive.
+	\item Avoid combining SI and CGS units, such as current in amperes and magnetic field in oersteds. This often leads to confusion because equations do not balance dimensionally. If you must use mixed units, clearly state the units for each quantity that you use in an equation.
+	\item Do not mix complete spellings and abbreviations of units: Wb/m$^2$ or webers per square meter, not webers/m$^2$.  Spell out units when they appear in text: ... a few henries, not ... a few H.
+	\item Use a zero before decimal points: 0.25, not .25. Use cm$^3$, not cc. 
+	\item To avoid mistakes, the \href{http://mirrors.ibiblio.org/CTAN/macros/latex/contrib/siunitx/siunitx.pdf}{siunitx}-usepackage might help you, though the declaration is quite verbose. Commonly used units (or variables) might also be declared preemptively. 
+	\end{itemize}
+
+	\subsection{Equations}
+	Number equations consecutively. Equation numbers, within parentheses, are to position flush right, as in \eqref{eq:eq_label}, using a right tab stop. To make your equations more compact, you may use the solidus ( / ), the exp function, or appropriate exponents. Italicize Roman symbols for quantities and variables, but not Greek symbols. Use a long dash rather than a hyphen for a minus sign. Punctuate equations with commas or periods when they are part of a sentence, as in
+	\begin{equation}\label{eq:eq_label}
+	    \alpha + \beta = \chi.
+	\end{equation}
+	Note that the equation is centered using a center tab stop. Be sure that the symbols in your equation have been defined before or immediately following the equation. Use \eqref{eq:eq_label}, not Eq. \eqref{eq:eq_label} or equation \eqref{eq:eq_label}, except at the beginning of a sentence: Equation \eqref{eq:eq_label} is ...
+
+	\subsection{Some Common Mistakes}
+	\begin{itemize}
+	\item When using preceding apostrophes, such as `this', or ``double apostrophes", make sure to use back-ticks (`) instead of an apostrophe (').
+	\item TU/e standard English is American English, not British English. Thus, it is suggested to write ``color", instead of ``colour". In any case, make sure to be at least consistent (i.e., avoid having both neighbour and neighbor in the same document)
+	\item In American English, commas, semi-/colons, periods, question and exclamation marks are located within quotation marks only when a complete thought or name is cited, such as a title or full quotation. When quotation marks are used, instead of a bold or italic typeface, to highlight a word or phrase, punctuation should appear outside of the quotation marks. A parenthetical phrase or statement at the end of a sentence is punctuated outside of the closing parenthesis (like this). (A parenthetical sentence is punctuated within the parentheses.)
+	\item A graph within a graph is an inset, not an insert. The word alternatively is preferred to the word alternately (unless you really mean something that alternates).
+	\item Do not use the word essentially to mean approximately or effectively.
+	\item In your paper title, if the words ``that uses" can accurately replace the word ``using", capitalize the u; if not, keep using lower-cased.
+	\item Be aware of the different meanings of the homophones affect and effect, complement and compliment, discreet and discrete, principal and principle.
+	\item Do not confuse imply and infer.
+	\item The prefix non is not a word; it should be joined to the word it modifies, usually without a hyphen.
+	\item There is no period after the et in the Latin abbreviation et al..
+	\item The abbreviation i.e. means that is, and the abbreviation e.g. means for example.
+	\item Always use a comma after a declaration of time or space. For example, use: ``In this chapter, ...", ``In 1954, ...". 
+	\item Figures have a title and a description. See Figure \ref{fig:label3} for reference. 
+	\item The word data is plural, not singular.
+
+	\end{itemize}
+
+	\subsection{Figures and tables}
+	\subsubsection{Positioning} Place figures and tables at the top and bottom of a page. Avoid placing them in the middle of the page. Figure captions should be below the figures; table captions should appear above the tables. Insert figures and tables after they are cited in the text. See Figure \ref{fig:label1} and also Figure \ref{fig:label2} for an example of subfigures. See Figure \ref{fig:label3} for an example of a single figure. See Table \ref{tab:tab_example} for a table example. In general, leave the brackets after ``\textbackslash{}begin\{table\}" empty, or use ``b", ``t", ``h", ``p" for forcing its position at bottom, current place in text, top or on a special page, respectively. For additional information, see \href{https://www.overleaf.com/learn/latex/Positioning_of_Figures}{this documentation}.
+	\begin{table}[h]
+		\centering
+		\caption{Table title.}
+		\label{tab:tab_example}
+		\begin{tabular}{c|c|c}
+			\toprule
+			Text & Text & Text  \\ \midrule
+	    	Text & Text & Text  \\
+			Text & Text & Text  \\ \bottomrule
+		\end{tabular}
+	\end{table}
+
+	\subsubsection{Figure labels} Use words rather than symbols or abbreviations when writing Figure axis labels to avoid confusing the reader. As an example, write the quantity Magnetization, or Magnetization, M, not just M. If including units in the label, present them within parentheses. Do not label axes only with units. In the example, write Magnetization (A/m), not just A/m. Do not label axes with a ratio of quantities and units. For example, write Temperature (K), not Temperature/K.
+
+	\subsection{Citations}
+	You can refer in text to other works, see \cite{StabilityAndConvergence}. Do not start a sentence with a citation. It is also possible to include the authors in more verbal citation, as shown by \textcite{StabilityAndConvergence}. 
+
+
+	\section{Sample section}
+	\lipsum[3-6]
+	\subsection{Sample subsection}
+	\lipsum[3-6]
+
+	\begin{figure}[ht]
+		\centering
+		\begin{subfigure}{0.48\linewidth}
+			\centering
+			\includegraphics[width=\textwidth]{example-image-a}
+			\caption{}
+			\label{fig:label1}
+		\end{subfigure}
+		\begin{subfigure}{0.48\linewidth}
+			\centering
+			\includegraphics[width=\textwidth]{example-image-b}
+			\caption{}
+			\label{fig:label2}
+		\end{subfigure}
+		\caption{Figure title. Caption referring to left figure (a) and caption referring to right figure (b).}
+		\label{fig:label3}
+	\end{figure}
+
+	\begin{figure}[ht]
+	    \centering
+	    \includegraphics[width=0.5\textwidth]{example-image-a}
+	    \caption{Main explanation. Further explanation.}
+	    \label{fig:label4}
+	\end{figure}
+
+	\section{Sample section}
+	\lipsum[3-6]
+
+	\newpage
+% CHAPTER 2
+	\chapter{Name of Chapter 2}
+	\lipsum[3-6]
+
+	\newpage
+	\thispagestyle{empty} \ \newpage
+
+	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% CONCLUSIONS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+	\chapter{Conclusion and recommendations}
+	\section{Conclusion}
+	\lipsum[3]
+
+	\section{Recommendations}
+	\lipsum[3]
+
+	\newpage
+	\thispagestyle{empty} \ \newpage
+
+	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% BIBLIOGRAPHY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+	\addcontentsline{toc}{chapter}{References}
+	\printbibliography[title=References]
+
+	\newpage
+	\thispagestyle{empty} \ \newpage
+
+%APPENDIX A
+	\appendix
+	\chapter{Appendix A Title}
+	Appendixes should appear after your conclusions and bibliography.
+	\section{Section of the first appendix}
+	\lipsum[3]
+
+
+	\newpage
+	\thispagestyle{empty} \ \newpage
+%APPENDIX B 
+	\chapter{Appendix B Title}
+	\lipsum[2]
+
+	\section{A section Title}
+	\lipsum[3]
+
+\end{document}
