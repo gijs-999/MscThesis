@@ -114,7 +114,7 @@ legend("$F_c^d=F_c^i$","$F_c^f$","$\tilde{F}_e^d$")
 figure(202); clf
 subplot(4,1,3); hold on
 plot(y.x,Fe)
-plot(ref.t,ref.Fe_)
+plot(y_f.x,Fe_p)
 ylabel("$F_e$ [N]")
 legend("$F_e^d$","$\tilde{F}_e^d$")
 grid on; box on;
@@ -147,7 +147,7 @@ grid on; box on;
 legend("$\dot{u}$","$\dot{x}^d=\dot{x}^i$","$\dot{x}^p$")
 
 subplot(4,1,3); hold on
-plot(y.x,Fe)
+plot(ref.t,ref.Fe)
 plot(y_f.x,Fe_p)
 % plot(ref.t,ref.Fe_,"k--")
 ylabel("$F_e$ [N]")

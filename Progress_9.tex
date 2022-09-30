@@ -207,16 +207,60 @@
   As discussed during the questions of Sven's defense, the momentum observer acted as a filter which made it so that missing data was not problematic for the impact detector that uses force. Therefore I don't think that missing velocity data is a valid argument for looking at force data; applying a filter to account for missing velocity data makes more sense in my opinion.
 
   As a final argument, the reason for applying reference spreading is diminishing peaks in the velocity tracking error. If a jump in velocity cannot be measured, then it is also not possible for the velocity tracking error to peak (barring a peak in the reference). While there is some connection between the peaking error and contact forces, the connection between measured velocity and the peaking error is much closer.
+
+  Conclusively, based on the arguments given above, a velocity-based impact detector is more appropriate for reference spreading than a force-based impact detector.
   
   \newpage
 
   \section{Learning impedance vs force/position reference}
-  When considering what reference to extract from demonstrations, two options come to mind. Firstly, it is possible to look at the position trajectory of the robot during demonstration. As the robot position by itself does not fully describe the robot's state, a force reference should also be extracted. This resembles the approach used by Sven. A second option would be to learn an impedance reference, i.e., the position of the VR device, which encapsulates both position and force. This section describes how both approaches would be implemented, as well as listing the pros and cons. 
+  When considering what reference to extract from demonstrations, two options come to mind. Firstly, it is possible to look at the position trajectory of the robot during demonstration. As the robot position by itself does not fully describe the robot's state, a force reference should also be extracted. This resembles the approach used by Sven. A second option would be to learn an impedance reference, i.e., the position of the VR device, which encapsulates both position and force. This section describes how both approaches would be implemented for a simple testcase. Furthermore, the pros and cons of each method will be discussed. 
 
   As a disclaimer, it should be noted that neither Sven's implementation nor the current VR implementation utilize a velocity reference. While Sven used reference spreading for the force reference, the value of reference spreading might be more apparent when applied to a velocity reference. The tracking performance is also expected to improve with the addition of a velocity reference. Therefore, the remainder of this section will assume that a velocity reference is included in the control scheme. Obtaining this reference should not prove difficult as a robot's velocity can easily be determined, and the HTC Vive provides velocity (and even acceleration) measurements.
 
-  \subsection{Impedance reference}
-  - 
+  \subsection{Testcase description}
+  The testcase consists of a 1-dof system with mass $m=1$ kg and position $x$. The EoM is given by $m\ddot{x}=F_c+F_e$, with control force $F_c$ and environmental contact force $F_e$ following
+
+  $$F_e=\begin{cases}
+    0 & \text{if } x\geq 0\\
+    -k_e x-d_e \dot{x}               & \text{if } x<0.
+  \end{cases}$$
+  Parameters $k_e=10^4$ N/m and $d_e=10$ Ns/m represent the environment's contact stiffness and damping, respectively.
+
+  The control force during the demonstration, $F_c^d$, is generated using an impedance controller with stiffness $k_c=40$ N/m and damping $d_c=2\sqrt{k_c}$ Ns/m:
+
+  $$ F_c^d = k_c(u-x)+d_c(\dot{u}-\dot{x}).$$
+
+  The references $u$ and $\dot{u}$ emulate an input coming from the VR device.
+
+  Figure \ref{} shows the reference $u$, together with simulation results of the demonstration. Five signals from this simulation are saved, so that they may be used as a reference for the LfD controllers: $u$, $\dot{u}$, $x^d$, $\dot{x}^d$, and $F_e^d$. Superscript $d$ denotes a result from the demonstration simulation.
+
+  It should be noted that determining $F_e^d$ for use in a reference is not easy outside simulations. At first sight, it might look like $F_e^d$ can be found using the EoM following $F_e = m\ddot{x}-F_c$, however, $\ddot{x}$ is not measured directly. A momentum observer could be used, though this results in a first-order filtered estimation. It is speculated that this estimation can be improved using Kalman smoothing. In an experiment of length $T$, a Kalman filter estimates $F_e^d(t)$ (with $t<T$) using data collected in interval ($0$, $t$). Kalman smoothing runs offline, and therefore has the benefit of using data from the entire experiment, i.e., interval ($0$, $T$). This could drastically improve estimations. 
+
+  \subsection{LfD controllers without reference spreading}
+  Firstly, the controllers are described without reference spreading. The impedance controller $F_c^i$ is identical to the controller used in demonstration, i.e.,
+
+  $$ F_c^i = k_c(u-x)+d_c(\dot{u}-\dot{x}).$$
+
+  Furthermore, the force/position control force $F_c^f$ is given by
+
+  $$ F_c^f = k_c(x^d-x)+d_c(\dot{x}^d-\dot{x}) + F_e^d.$$  
+  This force/position controller is identical to what Sven used, with the exception that Sven did not use a velocity reference $\dot{x}^d$. (He does fit a reference to the velocity, but it is not used by his controller according to his paper/thesis. Could this perhaps be an oversight?)
+
+  These controllers were evaluated in an ideal scenario, meaning that the impact occurs at the exact same time as it did during the demonstration, and there is a perfect estimation of $F_e^d$. The results are shown in Figure \ref{}. 
+
+  For the impedance controller, the results exactly match the demonstration as there is no difference between the controllers. 
+
+  The position/force controller shows drastically different behavior however. Already in the ante-impact phase where the force reference is still zero, the controller tracks $x^d$ which tracked $u$, meaning that $x^p$ will always lag behind. This could be improved by directly tracking $u$ in the ante-impact phase.
+
+  Furthermore, at the moment of impact, the force controller tries to track the peak in the force trajectory while, at the same time, the impact itself also causes a peak in force. As a result, $F_e^p$ spikes to approximately $2F_e^i$ at impact. After impact, contact loss due to bouncing is far more evident in $x^p$ than it is in $x^i$. Despite these results, the force/position controller should not yet be disregarded without looking at a situation where reference spreading is required.
+
+  In a less ideal scenario, estimation $\tilde{F}_e^d$ is a first-order filtered version of $F_e^d$ following
+
+  $$\dot{\tilde{F}}_e^d = k_f(F_e^d-\tilde{F}_e^d)$$
+
+  with gain $k_f=10$ s$^{-1}$, and  $\tilde{F}_e^d(0) = F_e^d(0)$. The filtered signal is shown in Figure \ref{fig:my_label}. This change does not affect the impedance controller, however the force/position controller shows significantly improved results in Figure \ref{fig:my_label}, since the filter removes peaks in the force reference. 
+
+\subsection{LfD controllers with reference spreading}
 
 % BIBLIOGRAPHY
 
