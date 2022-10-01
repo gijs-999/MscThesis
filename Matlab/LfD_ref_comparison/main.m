@@ -85,30 +85,30 @@ f{2} = figure(2); clf;
 
 subplot(4,1,2);hold on
 plot(ref.t,ref.u,'k--')
-plot(ref1.t,ref1.u,'--',color=Lines(1,:))
-plot(ref2.t,ref2.u,'--',color=Lines(2,:))
+plot(ref1.t,ref1.u,'--',"color",Lines(1,:))
+plot(ref2.t,ref2.u,'--',"color",Lines(2,:))
 plot(ref.t,ref.x,'k')
-plot(ref1.t,ref1.x,'b',color=Lines(1,:))
-plot(ref2.t,ref2.x,'r',color=Lines(2,:))
+plot(ref1.t,ref1.x,'b',"color",Lines(1,:))
+plot(ref2.t,ref2.x,'r',"color",Lines(2,:))
 ylabel("position [m]")
 grid on; box on;
 legend("$u$","$u^-$","$u^+$","$x$","$x^-$","$x^+$",'NumColumns',2)
 
 subplot(4,1,3); hold 
 plot(ref.t,ref.udot,'k--')
-plot(ref1.t,ref1.udot,'b--',color=Lines(1,:))
-plot(ref2.t,ref2.udot,'r--',color=Lines(2,:))
+plot(ref1.t,ref1.udot,'b--',"color",Lines(1,:))
+plot(ref2.t,ref2.udot,'r--',"color",Lines(2,:))
 plot(ref.t,ref.xdot,'k')
-plot(ref1.t,ref1.xdot,'b',color=Lines(1,:))
-plot(ref2.t,ref2.xdot,'r',color=Lines(2,:))
+plot(ref1.t,ref1.xdot,'b',"color",Lines(1,:))
+plot(ref2.t,ref2.xdot,'r',"color",Lines(2,:))
 ylabel("velocity [m/s]")
 grid on; box on;
 legend("$\dot{u}$","$\dot{u}^-$","$\dot{u}^+$","$\dot{x}$","$\dot{x}^-$","$\dot{x}^+$",'NumColumns',2)
 
 subplot(4,1,4); hold on
 plot(ref.t,ref.Fe_,'k')
-plot(ref1.t,ref1.Fe_,'b',color=Lines(1,:))
-plot(ref2.t,ref2.Fe_,'r',color=Lines(2,:))
+plot(ref1.t,ref1.Fe_,'b',"color",Lines(1,:))
+plot(ref2.t,ref2.Fe_,'r',"color",Lines(2,:))
 
 ylabel({"[N]","contact force"})
 grid on; box on;
@@ -211,14 +211,14 @@ clear sol sol1 sol2
 f{1} = figure(1); clf; 
 subplot(4,1,1);hold on
 plot(ref.t,ref.u,'k--')
-plot(ref.t,ref.x,Color=lines(1))
+plot(ref.t,ref.x,"color",lines(1))
 ylabel("position [m]")
 grid on; box on;
 legend("$u$","$x^d$")
 
 subplot(4,1,2); hold 
 plot(ref.t,ref.udot,'k--')
-plot(ref.t,ref.xdot,Color=lines(1))
+plot(ref.t,ref.xdot,"color",lines(1))
 ylabel("velocity [m/s]")
 grid on; box on;
 legend("$\dot{u}$","$\dot{x}^d$")
@@ -297,8 +297,8 @@ f{3} = figure(3); clf;
 subplot(4,1,1);hold on
 plot(ref.t,ref.u,'k--')
 plot(ref.t,ref.x,'k:')
-plot(ref.t,ref.x_i,Color=lines(1))
-plot(ref.t,ref.x_f,Color=Lines(2,:))
+plot(ref.t,ref.x_i,"color",lines(1))
+plot(ref.t,ref.x_f,"color",Lines(2,:))
 % plot(ref.t,ref.x_f_)
 plot(ref.t,ref.x,'k:')
 ylabel("position [m]")
@@ -308,8 +308,8 @@ legend("$u$","$x^d$","$x^i$","$x^{\tilde{f}}$")
 subplot(4,1,2); hold 
 plot(ref.t,ref.udot,'k--')
 plot(ref.t,ref.xdot,'k:')
-plot(ref.t,ref.xdot_i,Color=lines(1))
-plot(ref.t,ref.xdot_f,Color=Lines(2,:))
+plot(ref.t,ref.xdot_i,"color",lines(1))
+plot(ref.t,ref.xdot_f,"color",Lines(2,:))
 % plot(ref.t,ref.xdot_f)
 plot(ref.t,ref.xdot,'k:')
 ylabel("velocity [m/s]")
@@ -318,8 +318,8 @@ legend("$\dot{u}$","$\dot{x}^d$","$\dot{x}^i$","$\dot{x}^{\tilde{f}}$")
 
 subplot(4,1,3); hold on
 plot(ref.t,ref.Fe,'k:')
-plot(ref.t,ref.Fe_i,Color=lines(1))
-plot(ref.t,ref.Fe_f,Color=Lines(2,:))
+plot(ref.t,ref.Fe_i,"color",lines(1))
+plot(ref.t,ref.Fe_f,"color",Lines(2,:))
 plot(ref.t,ref.Fe,'k:')
 ylabel({"[N]","contact force"})
 grid on; box on;
@@ -327,8 +327,8 @@ legend("$F_e^d$","$F_e^i$","$F_e^{\tilde{f}}$")
 
 subplot(4,1,4); hold on
 plot(ref.t,ref.Fc,'k:')
-plot(ref.t,ref.Fc_i,Color=lines(1))
-plot(ref.t,ref.Fc_f,Color=Lines(2,:))
+plot(ref.t,ref.Fc_i,"color",lines(1))
+plot(ref.t,ref.Fc_f,"color",Lines(2,:))
 plot(ref.t,ref.Fc,'k:')
 ylabel({"[N]","control force"})
 grid on; box on;
