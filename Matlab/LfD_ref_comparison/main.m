@@ -1,4 +1,4 @@
-clear all;
+clear all; Lines = lines(20);
 %% set parameters
 ke = 10^4;
 be = 10;
@@ -81,34 +81,36 @@ ref2.Fe(1:i_p) = ref2.Fe(i_p+1);
 ref2.t = ref.t
 
 %% plot: ante/post reference
-figure(2); clf; 
-subplot(4,1,1);hold on
+f{2} = figure(2); clf; 
+
+subplot(4,1,2);hold on
 plot(ref.t,ref.u,'k--')
-plot(ref1.t,ref1.u,'b--')
-plot(ref2.t,ref2.u,'r--')
+plot(ref1.t,ref1.u,'--',color=Lines(1,:))
+plot(ref2.t,ref2.u,'--',color=Lines(2,:))
 plot(ref.t,ref.x,'k')
-plot(ref1.t,ref1.x,'b')
-plot(ref2.t,ref2.x,'r')
+plot(ref1.t,ref1.x,'b',color=Lines(1,:))
+plot(ref2.t,ref2.x,'r',color=Lines(2,:))
 ylabel("position [m]")
 grid on; box on;
 legend("$u$","$u^-$","$u^+$","$x$","$x^-$","$x^+$",'NumColumns',2)
 
-subplot(4,1,2); hold 
+subplot(4,1,3); hold 
 plot(ref.t,ref.udot,'k--')
-plot(ref1.t,ref1.udot,'b--')
-plot(ref2.t,ref2.udot,'r--')
+plot(ref1.t,ref1.udot,'b--',color=Lines(1,:))
+plot(ref2.t,ref2.udot,'r--',color=Lines(2,:))
 plot(ref.t,ref.xdot,'k')
-plot(ref1.t,ref1.xdot,'b')
-plot(ref2.t,ref2.xdot,'r')
+plot(ref1.t,ref1.xdot,'b',color=Lines(1,:))
+plot(ref2.t,ref2.xdot,'r',color=Lines(2,:))
 ylabel("velocity [m/s]")
 grid on; box on;
 legend("$\dot{u}$","$\dot{u}^-$","$\dot{u}^+$","$\dot{x}$","$\dot{x}^-$","$\dot{x}^+$",'NumColumns',2)
 
-subplot(4,1,3); hold on
+subplot(4,1,4); hold on
 plot(ref.t,ref.Fe_,'k')
-plot(ref1.t,ref1.Fe_,'b')
-plot(ref2.t,ref2.Fe_,'r')
-ylabel("contact force [N]")
+plot(ref1.t,ref1.Fe_,'b',color=Lines(1,:))
+plot(ref2.t,ref2.Fe_,'r',color=Lines(2,:))
+
+ylabel({"[N]","contact force"})
 grid on; box on;
 legend("$\tilde{F}_e^d$","$\tilde{F}_e^{d-}$","$\tilde{F}_e^{d+}$")
 
@@ -119,7 +121,7 @@ legend("$\tilde{F}_e^d$","$\tilde{F}_e^{d-}$","$\tilde{F}_e^{d+}$")
 % grid on; box on;
 xlabel("time [s]")
 %% change contact surface position
-d = 0.02;
+d = 0.0;
 %% apply learned reference: impedance
 y0 = [ref.u(1);ref.udot(1)];
 
@@ -206,31 +208,32 @@ clear sol sol1 sol2
 
 
 %% plot: demonstration
-figure(1); clf; 
+f{1} = figure(1); clf; 
 subplot(4,1,1);hold on
 plot(ref.t,ref.u,'k--')
-plot(ref.t,ref.x)
+plot(ref.t,ref.x,Color=lines(1))
 ylabel("position [m]")
 grid on; box on;
 legend("$u$","$x^d$")
 
 subplot(4,1,2); hold 
 plot(ref.t,ref.udot,'k--')
-plot(ref.t,ref.xdot)
+plot(ref.t,ref.xdot,Color=lines(1))
 ylabel("velocity [m/s]")
 grid on; box on;
 legend("$\dot{u}$","$\dot{x}^d$")
 
 subplot(4,1,3); hold on
 plot(ref.t,ref.Fe)
-plot(ref.t,ref.Fe_)
-ylabel("contact force [N]")
+% plot(ref.t,ref.Fe_)
+ylabel({"[N]","contact force"})
 grid on; box on;
 
 legend("$F_e^d$","$\tilde{F}_e^d$")
 subplot(4,1,4); hold on
 plot(ref.t,ref.Fc)
-ylabel("control force [N]")
+
+ylabel({"[N]","control force"})
 legend("$F_c^d$")
 grid on; box on;
 xlabel("time [s]")
@@ -290,12 +293,12 @@ xlabel("time [s]")
 % xlabel("time [s]")
 
 %% plot: lfd controller
-figure(3); clf; 
+f{3} = figure(3); clf; 
 subplot(4,1,1);hold on
 plot(ref.t,ref.u,'k--')
 plot(ref.t,ref.x,'k:')
-plot(ref.t,ref.x_i)
-plot(ref.t,ref.x_f)
+plot(ref.t,ref.x_i,Color=lines(1))
+plot(ref.t,ref.x_f,Color=Lines(2,:))
 % plot(ref.t,ref.x_f_)
 plot(ref.t,ref.x,'k:')
 ylabel("position [m]")
@@ -305,8 +308,8 @@ legend("$u$","$x^d$","$x^i$","$x^{\tilde{f}}$")
 subplot(4,1,2); hold 
 plot(ref.t,ref.udot,'k--')
 plot(ref.t,ref.xdot,'k:')
-plot(ref.t,ref.xdot_i)
-plot(ref.t,ref.xdot_f)
+plot(ref.t,ref.xdot_i,Color=lines(1))
+plot(ref.t,ref.xdot_f,Color=Lines(2,:))
 % plot(ref.t,ref.xdot_f)
 plot(ref.t,ref.xdot,'k:')
 ylabel("velocity [m/s]")
@@ -315,21 +318,35 @@ legend("$\dot{u}$","$\dot{x}^d$","$\dot{x}^i$","$\dot{x}^{\tilde{f}}$")
 
 subplot(4,1,3); hold on
 plot(ref.t,ref.Fe,'k:')
-plot(ref.t,ref.Fe_i)
-plot(ref.t,ref.Fe_f)
+plot(ref.t,ref.Fe_i,Color=lines(1))
+plot(ref.t,ref.Fe_f,Color=Lines(2,:))
 plot(ref.t,ref.Fe,'k:')
-ylabel("contact force [N]")
+ylabel({"[N]","contact force"})
 grid on; box on;
 legend("$F_e^d$","$F_e^i$","$F_e^{\tilde{f}}$")
 
 subplot(4,1,4); hold on
 plot(ref.t,ref.Fc,'k:')
-plot(ref.t,ref.Fc_i)
-plot(ref.t,ref.Fc_f)
+plot(ref.t,ref.Fc_i,Color=lines(1))
+plot(ref.t,ref.Fc_f,Color=Lines(2,:))
 plot(ref.t,ref.Fc,'k:')
-ylabel("control force [N]")
+ylabel({"[N]","control force"})
 grid on; box on;
 legend("$F_c^d$","$F_c^i$","$F_c^{\tilde{f}}$")
 xlabel("time [s]")
 
 %%
+w = 700;
+figure(1)
+f{1}.Position =[10 10 w 450] ;
+figure(2)
+f{2}.Position =[10 10 w 450] ;
+figure(3)
+f{3}.Position =[10 10 w 450] ;
+
+folder = "../../Graphics/"
+% print(f{1},folder+'foo.png','-dpng','-r600');
+
+exportgraphics(f{1},folder+'1d_demonstration.pdf','Resolution',600)
+exportgraphics(f{2},folder+'1d_RS.pdf','Resolution',600)
+exportgraphics(f{3},folder+'1d_learned_w='+string(d)+'.pdf','Resolution',600)

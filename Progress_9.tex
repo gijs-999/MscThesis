@@ -17,6 +17,8 @@
   \usepackage{bm}             % Make bold symbols
   \usepackage{lipsum}
   \usepackage{parskip}
+  \usepackage[export]{adjustbox}
+  \usepackage{changepage}
 % LAY-OUT
   % \usepackage{pdfpages}
 
@@ -232,10 +234,28 @@
 
   The references $u$ and $\dot{u}$ emulate an input coming from the VR device.
 
-  Figure \ref{} shows the reference $u$, together with simulation results of the demonstration. Five signals from this simulation are saved, so that they may be used as a reference for the LfD controllers: $u$, $\dot{u}$, $x^d$, $\dot{x}^d$, and $F_e^d$. Superscript $d$ denotes a result from the demonstration simulation.
+  Figure \ref{fig:1d_demonstration} shows the reference $u$, together with simulation results of the demonstration. Five signals from this simulation are saved, so that they may be used as a reference for the LfD controllers: $u$, $\dot{u}$, $x^d$, $\dot{x}^d$, and $F_e^d$. Superscript $d$ denotes a result from the demonstration simulation.
+
+  \begin{figure}[]
+  \centering
+  \begin{adjustwidth}{0pt}{5pt}
+  \includegraphics[right]{Graphics/1d_demonstration.pdf}
+  \end{adjustwidth}
+  \caption{Results of the demonstration simulation}
+  \label{fig:1d_demonstration}
+  \end{figure}
+
+  \begin{figure}[]
+  \centering
+  \begin{adjustwidth}{0pt}{5pt}
+  \includegraphics[right]{Graphics/1d_RS.pdf}
+  \end{adjustwidth}
+  \caption{Ante- and post-impact references generated from the demonstration data}
+  \label{fig:1d_RS}
+  \end{figure}
 
   \subsection{Reference spreading}
-  To apply reference spreading, the references must be split into an ante- and post-impact reference, and extended. The resulting references are shown in Figure \ref{fig:my_label}. The ante-impact reference is extended after the time of impact, defined as the first timestep where $x>=d$. Furthermore, the post-impact references are extended up to 0.5 seconds after time of impact. This delay prevents extension during an oscillation. Force and velocities were extended with a constant hold, whereas positions were updated to match the new velocity references.
+  To apply reference spreading, the references must be split into an ante- and post-impact reference, and extended. The resulting references are shown in Figure \ref{fig:1d_RS}. The ante-impact reference is extended after the time of impact, defined as the first timestep where $x\leq d$. Furthermore, the post-impact references are extended up to 0.5 seconds after time of impact. This delay prevents extension during an oscillation. Force and velocities were extended with a constant hold, whereas positions were updated to match the new velocity references.
 
 
   \subsection{LfD controllers}
@@ -248,17 +268,35 @@
   $$ F_c^f = k_c(x^d-x)+d_c(\dot{x}^d-\dot{x}) + F_e^d.$$  
   This force/position controller is identical to what Sven used, with the exception that Sven did not use a velocity reference $\dot{x}^d$. (He does fit a reference to the velocity, but it is not used by his controller according to his paper/thesis. Could this perhaps be an oversight?)
 
-  These controllers were evaluated with the switching references from the previous subsection. Firstly, it will be assumed that the location of the contact surface matches the location during the demonstration, i.e., $w=0$ m. The results are shown in Figure \ref{fig:my_label}.
+  These controllers were evaluated with the switching references from the previous subsection. Firstly, it will be assumed that the location of the contact surface matches the location during the demonstration, i.e., $w=0$ m. The results are shown in Figure \ref{fig:1d_learned_w0}.
 
   When comparing the impedance controller during demonstration and during reference spreading, there is a significant difference. When the velocity switches to zero at impact, there are less peaks in velocity, contact force, and control force. There might be some edge cases where the difference in contact forces from demonstration to execution is significant to moving an object, though generally reduced peaks in contact force are positive as they lead to less structural damage.
 
   The difference between the force/position controller and impedance controller is very minor. The force/position controller does not directly follow $u$, but follows $x^d$ instead, causing it to slightly lag behind the impedance controller, giving it a slight disadvantage.
 
-  In another experiment, the contact surface is moved to $w=0.02$ m when executing the learned reference. This is shown in Figure \ref{fig:my_label}. This experiment gives similar results, in the sense reference spreading results in less peaks compared to during the demonstration, and the impedance controller outperforms the position/force controller.
+  In another experiment, the contact surface is moved to $w=0.02$ m when executing the learned reference. This is shown in Figure \ref{fig:1d_learned_w002}. This experiment gives similar results, in the sense reference spreading results in less peaks compared to during the demonstration, and the impedance controller outperforms the position/force controller.
 
   \subsection{Conclusion}
   Given the experimental results, the impedance controller barely outperforms the force/position controller. Combined with the fact that the force/position controller is more complex -- in the sense that a force reference is required and that the controller deviates from the controller used during the demonstration -- the impedance controller is deemed more suitable for the impact-aware learning from teleoperation usecase.
 
+
+  \begin{figure}[!h]
+  \centering
+  \begin{adjustwidth}{0pt}{5pt}
+  \includegraphics[right]{Graphics/1d_learned_w=0.pdf}
+  \end{adjustwidth}
+  \caption{Results of both LfD controllers using RS. Impact at $x=0 m.$}
+  \label{fig:1d_learned_w0}
+  \end{figure}
+
+  \begin{figure}[!h]
+  \centering
+  \begin{adjustwidth}{0pt}{5pt}
+  \includegraphics[right]{Graphics/1d_learned_w=0.02.pdf}
+  \end{adjustwidth}
+  \caption{Results of both LfD controllers using RS. Impact at $x=0.02 m.$}
+  \label{fig:1d_learned_w002}
+  \end{figure}
   % These controllers were evaluated in an ideal scenario, meaning that the impact occurs at the exact same time as it did during the demonstration, and there is a perfect estimation of $F_e^d$. The results are shown in Figure \ref{}. 
 
   % For the impedance controller, the results exactly match the demonstration as there is no difference between the controllers. 
@@ -280,8 +318,8 @@
   \addcontentsline{toc}{chapter}{References}
   \printbibliography[title=References]
 
-  \newpage
-  \thispagestyle{empty} \ \newpage
+  % \newpage
+  % \thispagestyle{empty} \ \newpage
 
 
 \end{document}
