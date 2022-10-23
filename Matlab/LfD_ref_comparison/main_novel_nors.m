@@ -31,7 +31,9 @@ ref.u = x0+cumtrapz(ref.t,ref.udot);
 %% perform demonstration, save data, and plot
 y0 = [ref.u(1);ref.udot(1)];
 
-Fc  = @(t,y) controller_impedance(y,t,ref,kc,bc);
+ref_loc = ref;
+ref_loc.udot = ref_loc.udot*0;
+Fc  = @(t,y) controller_impedance(y,t,ref_loc,kc,bc);
 Fe  = @(t,y) environment(y,d,ke,be);
 ode = @(t,y) EoM(y,Fc(t,y),Fe(t,y));
 
@@ -66,21 +68,24 @@ i_p = min(find(ref.t>=ref.t(i)+T_inter));
 ref1 = ref;
 ref2 = ref;
 
-ref1.udot(i:end) = ref1.udot(i-1);
-ref2.udot(1:i_p) = ref2.udot(i_p+1);
-ref1.u(i:end) = ref1.u(i-1)+cumtrapz(ref1.t(i:end),ref1.udot(i:end));
-ref2.u(1:i_p) = ref2.u(i_p+1)-cumtrapz(ref2.t(1:i_p),ref2.udot(1:i_p));
+% ref1.udot(i:end) = ref1.udot(i-1);
+% ref2.udot(1:i_p) = ref2.udot(i_p+1);
+% ref1.u(i:end) = ref1.u(i-1)+cumtrapz(ref1.t(i:end),ref1.udot(i:end));
+% ref2.u(1:i_p) = ref2.u(i_p+1)-cumtrapz(ref2.t(1:i_p),ref2.udot(1:i_p));
+% 
+% ref1.xdot(i:end) = ref1.xdot(i-1);
+% ref2.xdot(1:i_p) = ref2.xdot(i_p+1);
+% ref1.x(i:end) = ref1.x(i-1)+cumtrapz(ref1.t(i:end),ref1.xdot(i:end));
+% ref2.x(1:i_p) = ref2.x(i_p+1)-cumtrapz(ref2.t(1:i_p),ref2.xdot(1:i_p));
+% 
+% ref1.Fe_(i:end) = ref1.Fe_(i-1);
+% ref2.Fe_(1:i_p) = ref2.Fe_(i_p+1);
+% ref1.Fe(i:end) = ref1.Fe(i-1);
+% ref2.Fe(1:i_p) = ref2.Fe(i_p+1);
+% ref2.t = ref.t;
 
-ref1.xdot(i:end) = ref1.xdot(i-1);
-ref2.xdot(1:i_p) = ref2.xdot(i_p+1);
-ref1.x(i:end) = ref1.x(i-1)+cumtrapz(ref1.t(i:end),ref1.xdot(i:end));
-ref2.x(1:i_p) = ref2.x(i_p+1)-cumtrapz(ref2.t(1:i_p),ref2.xdot(1:i_p));
-
-ref1.Fe_(i:end) = ref1.Fe_(i-1);
-ref2.Fe_(1:i_p) = ref2.Fe_(i_p+1);
-ref1.Fe(i:end) = ref1.Fe(i-1);
-ref2.Fe(1:i_p) = ref2.Fe(i_p+1);
-ref2.t = ref.t
+ref1.udot=0*ref1.udot; ref2.udot=0*ref2.udot;
+ref1.xdot=0*ref1.xdot; ref2.xdot=0*ref2.xdot;
 
 %% plot: ante/post reference
 f{2} = figure(2); clf; 
@@ -105,7 +110,7 @@ plot(ref1.t,ref1.xdot,'b',"color",Lines(1,:))
 plot(ref2.t,ref2.xdot,'r',"color",Lines(2,:))
 ylabel("velocity [m/s]")
 grid on; box on;
-legend("$\dot{y}$","$\dot{y}^-$","$\dot{y}^+$","$\dot{x}$","$\dot{x}^-$","$\dot{x}^+$",'NumColumns',2)
+legend("$\dot{y}$","$\dot{y}^-$","$\dot{u}^+$","$\dot{x}$","$\dot{x}^-$","$\dot{x}^+$",'NumColumns',2)
 
 subplot(4,1,4); hold on
 plot(ref.t,ref.Fe_,'k')
@@ -123,7 +128,7 @@ legend("$\tilde{F}_e^d$","$\tilde{F}_e^{d-}$","$\tilde{F}_e^{d+}$")
 % grid on; box on;
 xlabel("time [s]")
 %% change contact surface position
-d = 0.0;
+d = 0.1;
 %% apply learned reference: impedance
 y0 = [ref.u(1);ref.udot(1)];
 
@@ -351,6 +356,6 @@ f{3}.Position =[10 10 w 440] ;
 folder = "../../Graphics/"
 % print(f{1},folder+'foo.png','-dpng','-r600');
 
-exportgraphics(f{1},folder+'1d_demonstration.pdf','Resolution',600)
-exportgraphics(f{2},folder+'1d_RS.pdf','Resolution',600)
-exportgraphics(f{3},folder+'1d_learned_w='+string(d)+'.pdf','Resolution',600)
+% exportgraphics(f{1},folder+'1d_demonstration.pdf','Resolution',600)
+% exportgraphics(f{2},folder+'1d_RS.pdf','Resolution',600)
+exportgraphics(f{3},folder+'1d_learned_w='+string(d)+'_novel_nors.pdf','Resolution',600)

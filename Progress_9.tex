@@ -12,7 +12,7 @@
   \usepackage{booktabs}       % For standard tabular tables, with rules
   \usepackage{tabularx}       % For clean tables such as in the Nomenclature
   \usepackage{fancyhdr}       % Fancy headers
-  \usepackage[colorinlistoftodos]{todonotes}      % To create todo notes
+  % \usepackage[colorinlistoftodos]{todonotes}      % To create todo notes
   \usepackage[nottoc,notlot,notlof]{tocbibind}    % Add bibliography to content
   \usepackage{bm}             % Make bold symbols
   \usepackage{lipsum}
@@ -151,29 +151,32 @@
 
   \section*{1. Progress}
   \begin{itemize}
-  \item \textbf{Teleoperation:} 
+  \item \textbf{Impact detection:} As discussed last time, I was taking a closer look at Benn's impact detector as this supposedly was what Sven also ended up using. While doing so, I could not find any reason for why Benn looks at force estimations for impact detection rather than velocity measurements. Sven provides the reason that, during some timesteps, velocity measurements are missing. This is not the case for the force estimations due to the first order filter. I don't find this a valid argument as a similar filter could also be applied to the velocity measurements. Furthermore there are other benefits to impact detection using velocity, which I explain in section \ref{sec:impact}. I will get in touch with Benn to see if he (or perhaps you) can convince me that force-based impact detection is more suitable for reference spreading than velocity-based impact detection.
     
-  \item \textbf{Custom end effector:} 
-    
-  \item \textbf{Impact detection:} 
+  \item \textbf{Learning from demonstration:} In section \ref{sec:lfd}, I propose two controllers that track ante- and post impact references learned from the demonstration: an impedance controller, and a force/position controller as was used by Sven. 
+  The impedance controller is better at replicating the demonstration in a scenario with high repeatability (i.e., impact occurs at the same time as during demonstration) and can be used for a large variety of tasks (grabbing/twisting/etc). The force position controller is better at adjusting to objects of different sizes, though it does lose some versatility in which tasks it can perform. I figure that, for the goal of depelatization that I have in mind, the geometry and inertia of the boxes does not differ between demonstration and replication (thought their position may differ slightly). Furthermore I would like to not only perform grabbing tasks where the force mostly acts in orthogonal direction, but also a sliding task with shear forces. Therefore, the impedance controller is more appropriate than the position/force controller.
 
-  \item \textbf{Learning from demonstration:} 
-    
+  \item \textbf{Velocity reference:} Until now, the teleoperation controller received position and orientation data from the VR device. Performing fast object manipulation tasks could benefit from also using a velocity reference, as this makes the controller more responsive. Therefore I added this feature to the dual arm controller. This change is barely noticeable for rotations, but transnational tracking is now much better, and I was also able to decrease the impedance stiffness which I previously put very high to overcome friction. Some more tuning is still required, as currently the robot's safety limits are sometimes exceeded when the VR device is moved to quickly. This seems to be 
+
+  \item \textbf{Custom end effector:} After some silicone delivery delays, the second custom end effector is now completed. As previously requested by Alessandro, I will try to record some videos where I pick up heavy objects with two soft end effectors before the upcoming meeting.
+
   \end{itemize}
-
+\newpage
   \section*{2. Agenda}
   During the meeting, I would like to discuss the following points:
 
   \begin{itemize}
-      \item  
-      \item 
+      \item Do you agree with my arguments for using velocity-based impact detection instead of force-based impact detection? 
+      \item Given the usecase of boxes with constant geometry/inertia between demonstration and replication, the impedance controller is more suitable than the force/position controller. Should I also consider other options?
+      \item The safety limit issues occur mostly with rotation, which had me wondering what kind of stiffness Sven was using for rotation. I was unable to find anything regarding control of the rotational DoF's in Sven report. Do you more about his approach in this regard? Did he perhaps prescribe a reference in rotation?
   \end{itemize}
 
   \section*{3. Next steps}
 
   \begin{itemize}
-      \item  
-      \item 
+      \item Ensure that controller with velocity reference does not exceed safety limits
+      \item Apply LfD controller on dual-arm setup
+      \item Write background section for the final report
   \end{itemize}
 
   \section*{4. Long-term planning}
@@ -197,7 +200,7 @@
   \end{enumerate}
 % main text
   \newpage
-  \section{Impact detection using contact force vs velocity}
+  \section{Impact detection using contact force vs velocity}\label{sec:impact}
   For impact detection, Benn and Sven considered two options: looking at jumps in velocity, or jumps in force. Ultimately, Benn and Sven both ended up using the forces, whereas I think looking at velocities makes more sense in the context of reference spreading. This section explains my reasoning.
 
   Looking at jumps in force for impact detection could result in false positives. Consider an end effector that is already exerting a contact force on a fixed surface using impedance control. A jump in the reference would result in a jump in the contact force. Even if contact is maintained throughout the event, the jump in contact force would trigger the impact monitor while no impact has actually occurred. In the described situation, the velocity remains unchanged, meaning that a velocity-based impact detector would not return a false positive.
@@ -214,8 +217,8 @@
   
   \newpage
 
-  \section{Learning impedance vs force/position reference}
-  When considering what reference to extract from demonstrations, two options come to mind. Firstly, it is possible to look at the position trajectory of the robot during demonstration. As the robot position by itself does not fully describe the robot's state, a force reference should also be extracted. This resembles the approach used by Sven. A second option would be to learn an impedance reference, i.e., the position of the VR device, which encapsulates both position and force. This section describes how both approaches would be implemented for a simple testcase. Furthermore, the pros and cons of each method will be discussed. 
+  \section{Learning impedance vs force/position reference}\label{sec:lfd}
+  When considering what reference to extract from demonstrations, two options come to mind. Firstly, it is possible to look at the position trajectory of the robot during demonstration. As the robot position by itself does not fully describe the robot's state, a force reference should also be extracted. This resembles the approach used by Sven. A second option would be to learn an impedance reference, i.e., the position of the VR device, which encapsulates both position and force. This section describes how both approaches would be implemented for a simple testcase. Based on this, a decision is made on whether impedance or force/position control is more suitable for impact-aware learning from teleoperation.
 
   As a disclaimer, it should be noted that neither Sven's implementation nor the current VR implementation utilize a velocity reference. While Sven used reference spreading for the force reference, the value of reference spreading might be more apparent when applied to a velocity reference. The tracking performance is also expected to improve with the addition of a velocity reference. Therefore, the remainder of this section will assume that a velocity reference is included in the control scheme. Obtaining this reference should not prove difficult as a robot's velocity can easily be determined, and the HTC Vive provides velocity (and even acceleration) measurements.
 
@@ -226,15 +229,15 @@
     0 & \text{if } x\geq w\\
     -k_e x-d_e \dot{x}               & \text{if } x<w.
   \end{cases}$$
-  Parameters $k_e=10^4$ N/m and $d_e=10$ Ns/m represent the environment's contact stiffness and damping, respectively. Furthermore, $w$ describes the location of the contact surface and is equal to $0$ m unless stated otherwise.
+  Parameters $k_e=10^4$ N/m and $d_e=100$ Ns/m represent the environment's contact stiffness and damping, respectively. Furthermore, $w$ describes the location of the contact surface and is equal to $0$ m unless stated otherwise.
 
   The control force during the demonstration, $F_c^d$, is generated using an impedance controller with stiffness $k_c=40$ N/m and damping $d_c=2\sqrt{k_c}$ Ns/m:
 
-  $$ F_c^d = k_c(u-x)+d_c(\dot{u}-\dot{x}).$$
+  $$ F_c^d = k_c(y-x)+d_c(\dot{y}-\dot{x}).$$
 
-  The references $u$ and $\dot{u}$ emulate an input coming from the VR device.
+  The references $u$ and $\dot{y}$ emulate an input coming from the VR device.
 
-  Figure \ref{fig:1d_demonstration} shows the reference $u$, together with simulation results of the demonstration. Five signals from this simulation are saved, so that they may be used as a reference for the LfD controllers: $u$, $\dot{u}$, $x^d$, $\dot{x}^d$, and $F_e^d$. Superscript $d$ denotes a result from the demonstration simulation.
+  Figure \ref{fig:1d_demonstration} shows the reference $y$, together with simulation results of the demonstration. Five signals from this simulation are saved, so that they may be used as a reference for the LfD controllers: $y$, $\dot{y}$, $x^d$, $\dot{x}^d$, and $F_e^d$. Superscript $d$ denotes a result from the demonstration simulation.
 
   \begin{figure}[]
   \centering
@@ -260,42 +263,67 @@
 
   \subsection{LfD controllers}
   Two controllers will be compared. The impedance controller $F_c^i$ is identical to the controller used in demonstration, i.e.,
-
-  $$ F_c^i = k_c(u-x)+d_c(\dot{u}-\dot{x}).$$
-
+  $$ F_c^i = k_c(y-x)+d_c(\dot{y}-\dot{x}).$$
   Furthermore, the force/position control force $F_c^f$ is given by
-
   $$ F_c^f = k_c(x^d-x)+d_c(\dot{x}^d-\dot{x}) + F_e^d.$$  
-  This force/position controller is identical to what Sven used, with the exception that Sven did not use a velocity reference $\dot{x}^d$. (He does fit a reference to the velocity, but it is not used by his controller according to his paper/thesis. Could this perhaps be an oversight?)
+  This force/position controller is identical to what Sven used, with the exception that Sven did not use a velocity reference $\dot{x}^d$. (He does fit a reference to the velocity, but it is not used by his controller according to his paper/thesis. Could this perhaps be an oversight?)% In the absence of a velocity reference, reference spreading does not contribute to performance. This contradicts the conclusions of Sven's thesis, though I believe the difference Sven noticed was a matter of inaccurate impact detection.)
 
   These controllers were evaluated with the switching references from the previous subsection. Firstly, it will be assumed that the location of the contact surface matches the location during the demonstration, i.e., $w=0$ m. The results are shown in Figure \ref{fig:1d_learned_w0}.
 
-  When comparing the impedance controller during demonstration and during reference spreading, there is a significant difference. When the velocity switches to zero at impact, there are less peaks in velocity, contact force, and control force. There might be some edge cases where the difference in contact forces from demonstration to execution is significant to moving an object, though generally reduced peaks in contact force are positive as they lead to less structural damage.
+  When comparing the impedance controller during demonstration and during reference spreading, tracking of position and velocity is very similar. There is a notable difference in control force however. Since the velocity reference is set to zero by reference spreading, the resulting peak in control force is smaller. 
 
   The difference between the force/position controller and impedance controller is very minor. The force/position controller does not directly follow $u$, but follows $x^d$ instead, causing it to slightly lag behind the impedance controller, giving it a slight disadvantage.
 
-  In another experiment, the contact surface is moved to $w=0.02$ m when executing the learned reference. This is shown in Figure \ref{fig:1d_learned_w002}. This experiment gives similar results, in the sense reference spreading results in less peaks compared to during the demonstration, and the impedance controller outperforms the position/force controller.
+  In another experiment, the contact surface is moved to $w=0.1$ m when executing the learned reference. This is shown in Figure \ref{fig:1d_learned_w01}. This experiment gives similar results, in the sense reference spreading results in reduced control force peaks compared to during the demonstration, and the impedance controller outperforms the position/force controller in tracking the position during the demonstration.
 
-  \subsection{Conclusion}
-  Given the experimental results, the impedance controller barely outperforms the force/position controller. Combined with the fact that the force/position controller is more complex -- in the sense that a force reference is required and that the controller deviates from the controller used during the demonstration -- the impedance controller is deemed more suitable for the impact-aware learning from teleoperation usecase.
+  \subsection{Conclusion/discussion}
+  Given the experimental results, the impedance controller barely outperforms the force/position controller. Combined with the fact that the force/position controller is adds complexity -- in the sense that a force reference is required and that the controller deviates from the controller used during the demonstration -- the impedance controller is deemed more suitable for the impact-aware learning from teleoperation usecase.
 
+  Jari lead me to understand that a force/position controller could have benefits with a slightly different implementation. Currently, if the impact surface is closer than expected, this results in a larger contact force. If the position tracking was disabled after impact, the force reference would ensure that the contact force is not affected by the position of the contact surface. In a multidimensional case, position tracking shouldn't necessarily be disabled in all directions. This direction may differ between different tasks however, therefore taking away from the controllers versatility.
+
+  % other conclusions:
+  % - for the impedance controller, reference spreading makes basically no difference if a velocity reference is not used.
+  % - for position/force controller without velocity reference, reference spreading makes little difference compared to a simple 1st order lowpass filter applied to the force reference.
 
   \begin{figure}[!h]
   \centering
   \begin{adjustwidth}{0pt}{5pt}
   \includegraphics[right]{Graphics/1d_learned_w=0.pdf}
   \end{adjustwidth}
-  \caption{Results of both LfD controllers using RS. Impact at $x=0 m.$}
+  \caption{Results of both LfD controllers using RS. Impact at $x=0$ m}
   \label{fig:1d_learned_w0}
   \end{figure}
 
   \begin{figure}[!h]
   \centering
   \begin{adjustwidth}{0pt}{5pt}
-  \includegraphics[right]{Graphics/1d_learned_w=0.02.pdf}
+  \includegraphics[right]{Graphics/1d_learned_w=0.1.pdf}
   \end{adjustwidth}
-  \caption{Results of both LfD controllers using RS. Impact at $x=0.02 m.$}
-  \label{fig:1d_learned_w002}
+  \caption{Results of both LfD controllers using RS. Impact at $x=0.1$ m}
+  \label{fig:1d_learned_w01}
+  \end{figure}
+\newpage
+  \subsection{Extra: value of reference spreading in absence of velocity reference}
+  The experiment was repeated using controllers that do not use a velocity reference. This was done with reference spreading (Figure \ref{fig:1d_learned_w01_novel}) and without reference spreading (Figure \ref{fig:1d_learned_w01_novel_nors}). For the impedance controller, there is no noticeable difference between using reference spreading or not using it. For the force/position controller, reference spreading ensure that the force reference does not activate prior to impact, which can be interpreted as a small improvement. Nevertheless, the effects of reference spreading isn't nearly as significant as it is in the presence of a velocity reference.
+
+
+  \newpage
+  \begin{figure}[!h]
+  \centering
+  \begin{adjustwidth}{0pt}{5pt}
+  \includegraphics[right]{Graphics/1d_learned_w=0.1_novel.pdf}
+  \end{adjustwidth}
+  \caption{Results using RS without a velocity reference. Impact at $x=0.1$ m}
+  \label{fig:1d_learned_w01_novel}
+  \end{figure}
+
+  \begin{figure}[!h]
+  \centering
+  \begin{adjustwidth}{0pt}{5pt}
+  \includegraphics[right]{Graphics/1d_learned_w=0.1_novel_nors.pdf}
+  \end{adjustwidth}
+  \caption{Results without RS and without a velocity reference. Impact at $x=0.1$ m}
+  \label{fig:1d_learned_w01_novel_nors}
   \end{figure}
   % These controllers were evaluated in an ideal scenario, meaning that the impact occurs at the exact same time as it did during the demonstration, and there is a perfect estimation of $F_e^d$. The results are shown in Figure \ref{}. 
 
@@ -310,7 +338,6 @@
   % $$\dot{\tilde{F}}_e^d = k_f(F_e^d-\tilde{F}_e^d)$$
 
   % with gain $k_f=10$ s$^{-1}$, and  $\tilde{F}_e^d(0) = F_e^d(0)$. The filtered signal is shown in Figure \ref{fig:my_label}. This change does not affect the impedance controller, however the force/position controller shows significantly improved results in Figure \ref{fig:my_label}, since the filter removes peaks in the force reference. 
-
 
 % BIBLIOGRAPHY
 
