@@ -151,37 +151,40 @@
 
   \section*{1. Progress}
   \begin{itemize}
-  \item \textbf{Teleoperation:} Last time, I mentioned that a velocity reference results in more responsive tracking of the VR device. This was paired with the safety limits of the robot being exceeded in edge cases (mostly with fast rotations). As a solution, it was suggested that I look into the task weights, however these weights only make a difference by prioritizing certain tasks when not all tasks can be executed perfectly. This was not the problem however; even when the impedance task can be executed perfectly, rotational errors cause the controller to apply a virtual torque, which often is paired with the fast translational displacements. Instead of altering weights, I solved the problem by limiting the velocity reference to  reference augmentation. An alternative approach from literature uses a force sensor to decouple translational and rotational impedance DoF's, though I decided that further investigation of this was not a priority.
+  
+  \item \textbf{Impact detection:} Previously I mentioned that force-based impact detection had some flaws with false positives, and that I wanted to implement position-based impact detection with jump aware filtering as was described by Mark Rijnen. It turns out that this approach also has some limitations. Since the approach is model free, it not possible to tell accelerations caused by impact apart from accelerations driven by the controller in free motion. This becomes a problem for my situation where the impacts have lower accelerations due to the soft covered end effector, and the controller gives high accelerations to track the VR device's velocity reference.
+
+  I realized that impacts cannot be detected from only force or only position estimations. In Section \ref{sec:impact}, I define conditions for an impact, and based on this I propose an impact detection scheme that uses both position and force. This new impact detector has some specific weaknesses that I explain, but so far this impact detector has worked perfectly for my applications with no false positives. I believe I can finally check impact detection off my todo list.
+
+  \item \textbf{Reference spreading with impedance control:} With impact detection, I could finally implement reference spreading on the setup. I performed a stamping experiment similar to Sven, where the end effector moves downward and collides with a fixed surface. In varying experiments, the fixed surface was lowered by 10mm or raised by 30mm, and the tests were ran with- and without reference spreading. The results are shown in Section \ref{sec:RS}.
+
+  It turns out that reference spreading does not provide any significant value to impedance control. The reference extracted from the VR device does not contain jumps, meaning that RS does not provide the benefit of aligning the jumps in the reference with detected impacts to prevent error peaking. Nevertheless, the tracking error still contains a jump. An impact map could be used to match the post-impact velocity reference to the post-impact velocity of the system. Initially I envisioned that an impact map would not be necessary since the velocity jump could be estimated from the demonstration, however the current implementation only looks at the VR device. Some decisions must be made here since RS currently has no value, and without out it, the controller cannot be considered impact-aware.
+
+  \item \textbf{Teleoperation:} Last time, I mentioned that a velocity reference results in more responsive tracking of the VR device. This was paired with the safety limits of the robot being exceeded in edge cases (mostly with fast rotations). As a solution, I looked into the task weights, however these weights only make a difference by prioritizing certain tasks when not all tasks can be executed perfectly. This was not the problem however; even when the impedance task can be executed perfectly, rotational errors cause the controller to apply a virtual torque, which often is paired with the fast translational displacements. Instead of altering weights, I solved the problem by limiting the velocity reference to 1 m/s or 0.7 rad/s. An alternative approachis to use a force sensor to decouple translational and rotational impedance DoF's, though I decided that further investigation of this was not a priority.
 
   Furthermore I added a feature where the VR device vibrates to indicate how much force is detected at the end effector. Personally I had difficulty with correlating the vibration with a force when teleoperating, and it also appeared that the vibrations were affecting the velocity reference extracted from the VR device. Overall I prefer teleoperation without the vibration.
     
-  \item \textbf{Impact detection:} Previously I mentioned that force-based impact detection had some flaws with false positives, and that I wanted to implement position-based impact detection with jump aware filtering as was described by Mark Rijnen. It turns out that this approach also has some limitations. Since the approach is model free, it not possible to tell accelerations caused by impact apart from accelerations driven by the controller in free motion. This becomes a problem for my situation where the impacts have lower accelerations due to the soft covered end effector, and the controller gives high accelerations to track the VR device's velocity reference.
-
-  I realized that impacts cannot be detected from only force or only position estimations. In Section 1, I define sufficient conditions for an impact, and based on this I propose an impact detection scheme that uses both position and force. So far this impact detector has worked perfectly for my applications with no false positives.
-
-  \item \textbf{Reference spreading with impedance control:} With impact detection, I could finally implement reference spreading on the setup. I performed a stamping experiment similar to Sven, where the end effector moves downward and collides with a fixed surface. In varying experiments, the fixed surface was lowered by 10mm or raised by 30mm, and the tests were ran with- and without reference spreading. The results are shown in Section 2.
-
-  It turns out that reference spreading does not provide any significant value to impedance control. The reference itself does not experience any jumps, meaning that the velocity tracking error does not peak. Nevertheless, this tracking error does contain a jump once the estimated system velocity jumps. An impact map could be used to match the post-impact velocity reference to the post-impact velocity of the system. Initially I envisioned that an impact map would not be necessary since the velocity jump could be estimated from the demonstration, however the current implementation only looks at the VR device. Some decisions must be made here since RS currently has no value, and without out it, the controller cannot be considered impact-aware.
-
   \end{itemize}
 
   \section*{2. Agenda}
   During the meeting, I would like to discuss the following points:
 
   \begin{itemize}
-      \item  
-      \item 
+      \item The controller that I have currently implemented does not benefit from reference spreading, and without reference spreading it cannot be considered impact aware. I see two possibilities here: add jumps to the velocity reference obtained from the VR device, or change damping behaviour briefly after impact. Do you perhaps have any suggestions?
+      \item Alessandro previously proposed that I should write a paper+appendix rather than a report. Is this decision final? And are there any guidelines you recommend for writing such a paper?
   \end{itemize}
 
   \section*{3. Next steps}
 
   \begin{itemize}
-      \item  
-      \item 
+      \item Make the controller impact-aware. Possible approaches are: adding jumps to the reference so that RS becomes useful, or briefly change damping behaviour after impact.
+      \item Document custom end effector and impact detection comparison for final thesis.
+      \item I realised that I do not yet fit ProMPs to data from multiple demonstrations. Fitting these ProMPs would reduce the noise in the velocity reference, and also filter out movements that are not required in fulfilling the task.
+      \item (low priority/not absolutely required: look into using the force sensor for better impedance control in free motion as described in)
   \end{itemize}
 
   \section*{4. Long-term planning}
-  Below is the current long-term planning for the project phase. The description of the labeled subjects are given in the preparation phase report and are also provided on the next page.
+  Shown below is the current long-term planning for the project phase.  I believe that impact detection is finally finished. The impact-aware controller still requires a lot of effort, so I have reserved two weeks from the buffer to work on that. While reference processing and teleoperation are functional, there is still space for improvement, though the priority is on getting the entire impact-aware controller operating first. 
 
   \begin{figure}[H]
   \centering
@@ -201,7 +204,7 @@
   \end{enumerate}
 % main text
   \newpage
-  \section{Impact detection}
+  \section{Impact detection}\label{sec:impact}
   I performed an experiment with position-based impact detection as described by Mark Rijnen, and force-based impact detection as was implemented by Benn Proper. Firstly I will give a brief explanation of how these schemes work.
 
   \subsection{Position-based impact detection}
@@ -217,7 +220,7 @@
 
   The force-based impact detector does not suffer from large peaks during free motion. Still, a peak can be seen at $t=14$ s where contact is lost. Similiar peaks will appear when the force is increased over a short time, despite there being no loss of contacts. No bound can be chosen so that the true impacts are isolated from the other events with high force rates.
 
-  Conclusively, neither the force nor the position-based impact detector is useful for this situation.
+  Conclusively, neither the force nor the position-based impact detector is useful for this situation. This motivates the development of a new method in the next section.
 
   \begin{figure}[]
   \centering
@@ -231,7 +234,7 @@
   \subsection{Hybrid impact detection}
   Relatively large accelerations and force rates may be caused by impacts, though they are not sufficient conditions. To formulate an alternative impact detection scheme, firstly an impact is formally defined.
 
-  Let there be two bodies named A and B. The relative velocity of body A with respect to B is $\vec{v}_{A,B}$. Furthermore, when in contact, the bodies exert a force $\vec{F}$ on each other. We can say that an impact has occurred between time-steps $t_1$ and $t_2$, with $t_2>t_1$, if the following sufficient conditions are met:
+  Let there be two bodies named A and B, see Figure \ref{fig:bodies}. The relative velocity of body A with respect to B is $\vec{v}_{A,B}$. Furthermore, when in contact, the bodies exert a force $\vec{F}$ on each other. We can say that an impact has occurred between time-steps $t_1$ and $t_2$, with $t_2>t_1$, if the following sufficient conditions are met:
 \begin{enumerate}
   \item $\left \| \vec{F}_{t_1} \right \|= 0$
   \item $\left \| \vec{F}_{t_2} \right \|> 0$
@@ -239,6 +242,17 @@
   % \item $\frac{\vec{v}_{t_1}\dot$\vec{F}_{t_2}}{ \left \| \vec{F}_{t_2} \right \| }  > 0$
 \end{enumerate}
   
+ \begin{figure}[]
+  \centering
+  % \begin{adjustwidth}{0pt}{5pt}
+  \includegraphics[width=0.4\textwidth]{Graphics/1.png}\hfill
+  \includegraphics[width=0.4\textwidth]{Graphics/2.png}
+  % \includegraphics[right]{Graphics/result_torque0mm.pdf}
+  % \end{adjustwidth}
+  \caption{Two bodies before and after impact}
+  \label{fig:bodies}
+  \end{figure}
+
   The third conditions evaluates the velocity in direction of the force vector to ensure that contact was not already previously established. Without it, an impact may be detected between two bodies that do not move.
 
   In practice, these conditions are hard to evaluate. We do not know the velocity of the end-effector to the contact surface, and the force estimations are hardly ever exactly equal to zero. Therefore, the conditions are changed to
@@ -250,13 +264,11 @@
 \end{enumerate}
   where $b_F$ and $b_v$ are bounds that should be larger than errors in the force and velocity estimations respectively. Furthermore $\vec{v}_{E,W}$ is the velocity of the end effector with respect to the world frame.
 
-  These more practical conditions are not perfect. Low-velocity impacts or impacts with low forces will not be detected. Furthermore, when the robot is static and another object bumps into it, this will not be classified as impact. Nevertheless, this is not a problem in the desired usecase, and more importantly, there will be no false-positive impact detections. 
+  These more practical conditions are not perfect. Low-velocity impacts or impacts with low forces will not be detected. Furthermore, when the robot is static and another object bumps into it, this will not be classified as impact. This method is also limited to one contact at a time, since the momentum observer cannot distinguish between various sources of exteral force. Nevertheless, this is not a problem in the desired usecase, and more importantly, there will be no false-positive impact detections. 
 
   The hybrid impact detection method was evaluated experimentally. The vertical lines in Figure \ref{fig:force_pos_detection} are the results of this impact detection scheme, with $b_F = 8$ N, and $b_v = 0.05$~m/s. 
 
-
-  \newpage
-  \section{Impedance control with reference spreading}
+  \section{Impedance control with reference spreading}\label{sec:RS}
   To evaluate impedance control with reference spreading, firstly a demonstration was performed where the end effector stamps the table twice. A metal plate with a thickness of approximately 10mm was placed on the table during the demonstration, so that it may later be removed to move the impact surface. The extracted and extended references in z-direction are shown in Figure \ref{fig:spreading}.
 
   The generated references were applied in configurations where the impact surface was 10 mm lower, the same height, or 30 mm higher. Furthermore each of these configurations was evaluated with- and without reference spreading. The results are shown in Figure \ref{fig:results_-10mm}-\ref{fig:results_30mm}. 
@@ -265,6 +277,17 @@
 
   There might still be some opportunities with reference spreading, however this would require a jump to be introduced in the reference. This could be done based on the jumps in the tracked velocity during the demonstration. It should be considered, however, whether introducing jumps into a reference is actually beneficial. Another approach could be briefly reducing damping after impact, or setting the velocity reference to zero for a short while.
 
+
+\vfill
+    \begin{figure}[!h]
+  \centering
+  \begin{adjustwidth}{0pt}{5pt}
+  \includegraphics[right]{Graphics/RSvive.pdf}
+  \end{adjustwidth}
+  \caption{When the reference contains a jump that is misaligned with the jump that is actually tracked, the error peaks. When the reference does not contain a jump, as is the case with the reference directly extracted from the VR device during demonstration, there is no peak in the tracking error.}
+  \label{fig:RSvive}
+  \end{figure}
+
   \begin{figure}[]
   \centering
   \begin{adjustwidth}{0pt}{5pt}
@@ -272,15 +295,6 @@
   \end{adjustwidth}
   \caption{Reference extracted for stamping task, together with the extended references. The value of $j$ relates to how many jumps have occurred.}
   \label{fig:spreading}
-  \end{figure}
-
-    \begin{figure}[]
-  \centering
-  \begin{adjustwidth}{0pt}{5pt}
-  \includegraphics[right]{Graphics/RSvive.pdf}
-  \end{adjustwidth}
-  \caption{When the reference contains a jump that is misaligned with the jump that is actually tracked, the error peaks. When the reference does not contain a jump, as is the case with the reference directly extracted from the VR device during demonstration, there is no peak in the tracking error.}
-  \label{fig:RSvive}
   \end{figure}
 
  \begin{figure}[]
