@@ -17,6 +17,8 @@
   \usepackage{bm}             % Make bold symbols
   \usepackage{lipsum}
   \usepackage{parskip}
+  \usepackage[export]{adjustbox}
+  \usepackage{changepage}
 % LAY-OUT
   % \usepackage{pdfpages}
 
@@ -149,15 +151,18 @@
 
   \section*{1. Progress}
   \begin{itemize}
-  \item \textbf{Teleoperation:} Last time, I mentioned that the velocity reference results in more responsive tracking of the VR device. This was paired with the safety limits of the robot being exceeded in edge cases. It was suggested that I look into the task weights, however in section xxx I show that changing weights is not a solution. Instead of altering weights, I solved the problem by tuning the reference augmentation.
+  \item \textbf{Teleoperation:} Last time, I mentioned that a velocity reference results in more responsive tracking of the VR device. This was paired with the safety limits of the robot being exceeded in edge cases (mostly with fast rotations). As a solution, it was suggested that I look into the task weights, however these weights only make a difference by prioritizing certain tasks when not all tasks can be executed perfectly. This was not the problem however; even when the impedance task can be executed perfectly, rotational errors cause the controller to apply a virtual torque, which often is paired with the fast translational displacements. Instead of altering weights, I solved the problem by limiting the velocity reference to  reference augmentation. An alternative approach from literature uses a force sensor to decouple translational and rotational impedance DoF's, though I decided that further investigation of this was not a priority.
+
+  Furthermore I added a feature where the VR device vibrates to indicate how much force is detected at the end effector. Personally I had difficulty with correlating the vibration with a force when teleoperating, and it also appeared that the vibrations were affecting the velocity reference extracted from the VR device. Overall I prefer teleoperation without the vibration.
     
-  \item \textbf{Impact detection:} I implemented impact detection using a jump-aware filter, a prediction function, and a bounding function as described by Mark Rijnen. In section xxx, I argue that a small moving window for the filter is better than a large window. As a result, the prediction is equivalent to a linear extrapolation and the jump-aware filter is redundant. This is supported by experimental data.
+  \item \textbf{Impact detection:} Previously I mentioned that force-based impact detection had some flaws with false positives, and that I wanted to implement position-based impact detection with jump aware filtering as was described by Mark Rijnen. It turns out that this approach also has some limitations. Since the approach is model free, it not possible to tell accelerations caused by impact apart from accelerations driven by the controller in free motion. This becomes a problem for my situation where the impacts have lower accelerations due to the soft covered end effector, and the controller gives high accelerations to track the VR device's velocity reference.
 
-  Furthermore, impact detection based on the estimated force rate was compared to Mark Rijnen's approach with position measurements. Comparatively, the force rate method has a lower response time as was already suggested by Sven.
+  I realized that impacts cannot be detected from only force or only position estimations. In Section 1, I define sufficient conditions for an impact, and based on this I propose an impact detection scheme that uses both position and force. So far this impact detector has worked perfectly for my applications with no false positives.
 
-  \item \textbf{Learning from demonstration:} An experiment was performed where the robot stamps on the table. This is further explained in section xxx. Impedance control without reference spreading was compared to impedance control with reference spreading in vertical direction. The addition of reference spreading reduced the required control effort and joint torques at the time of impact. The implementation should be expanded to also support reference spreading in rotational DoF's so that more complex tasks than just stamping can be performed. Furthermore, an intermediate impact control mode should be investigated.
+  \item \textbf{Reference spreading with impedance control:} With impact detection, I could finally implement reference spreading on the setup. I performed a stamping experiment similar to Sven, where the end effector moves downward and collides with a fixed surface. In varying experiments, the fixed surface was lowered by 10mm or raised by 30mm, and the tests were ran with- and without reference spreading. The results are shown in Section 2.
 
-  \item \textbf{Use case:} 
+  It turns out that reference spreading does not provide any significant value to impedance control. The reference itself does not experience any jumps, meaning that the velocity tracking error does not peak. Nevertheless, this tracking error does contain a jump once the estimated system velocity jumps. An impact map could be used to match the post-impact velocity reference to the post-impact velocity of the system. Initially I envisioned that an impact map would not be necessary since the velocity jump could be estimated from the demonstration, however the current implementation only looks at the VR device. Some decisions must be made here since RS currently has no value, and without out it, the controller cannot be considered impact-aware.
+
   \end{itemize}
 
   \section*{2. Agenda}
@@ -196,9 +201,119 @@
   \end{enumerate}
 % main text
   \newpage
-  \section{First subject}
+  \section{Impact detection}
+  I performed an experiment with position-based impact detection as described by Mark Rijnen, and force-based impact detection as was implemented by Benn Proper. Firstly I will give a brief explanation of how these schemes work.
 
-  \section{Second subject}
+  \subsection{Position-based impact detection}
+  This scheme is model free: it only requires position measurements $q_k$ where $k$ indicates the timestep. A polynomial of degree $K$ is fitted to the previous $M+1$ measured positions contained in $\bar{q}_k = \begin{bmatrix} q_{k-M}& ... & q_{k} \end{bmatrix}$. This polynomial can be used to find a predicted position $\tilde{q}_k$ during a future time $t_{k+1}$, i.e., $\tilde{q}_{k+1}=P(t_{k+1},\bar{q}_k)$. A large prediction error $e_{k}=\left \|  \tilde{q}_{k}-q_{k}\right \|$ can be the result of a large acceleration, possibly caused by an impact. An impact is detected when the error $e_k$ exceeds a bound.
+
+  \subsection{Force-based impact detection}
+  For this method, external force estimate $\tilde{F}_k$ derived using a momentum observer. A force-rate $\dot{\tilde{F}}$ is determined following $\dot{\tilde{F_k}}=\frac{\tilde{F_k}-\tilde{F}_{k-1}}{t_k-t_{k-1}}$. If the absolute value of this force-rate exceeds a bound, an impact is detected.
+
+  \subsection{Evaluation}
+  Figure \ref{fig:force_pos_detection} shows the results of an experiment where both impact detection schemes were applied. The end effector moves downward and impacts table, after which the end effector is lifted and then moved downward for a second impact. For the position-based impact detector, window length $M=10$ and polynomial order $K=2$ were used. 
+
+  The position-based impact detector error $e$ shows peaks while in free motion. These peaks are more prominent than the peak that happens right before the moment of impact. This is a result of aggresive tracking of the VR device and small acceleration during impacts due to the soft end effector. No bound can be defined so that impacts can be isolated, meaning that this approach is not useful for the scenario.
+
+  The force-based impact detector does not suffer from large peaks during free motion. Still, a peak can be seen at $t=14$ s where contact is lost. Similiar peaks will appear when the force is increased over a short time, despite there being no loss of contacts. No bound can be chosen so that the true impacts are isolated from the other events with high force rates.
+
+  Conclusively, neither the force nor the position-based impact detector is useful for this situation.
+
+  \begin{figure}[]
+  \centering
+  \begin{adjustwidth}{0pt}{5pt}
+  \includegraphics[right]{Graphics/force_VS_pos_impacts.pdf}
+  \end{adjustwidth}
+  \caption{Result of an experiment featuring two impacts. Only results in downward direction are shown. The vertical dashed lines are detected with a newly-proposed method.}
+  \label{fig:force_pos_detection}
+  \end{figure}
+\newpage
+  \subsection{Hybrid impact detection}
+  Relatively large accelerations and force rates may be caused by impacts, though they are not sufficient conditions. To formulate an alternative impact detection scheme, firstly an impact is formally defined.
+
+  Let there be two bodies named A and B. The relative velocity of body A with respect to B is $\vec{v}_{A,B}$. Furthermore, when in contact, the bodies exert a force $\vec{F}$ on each other. We can say that an impact has occurred between time-steps $t_1$ and $t_2$, with $t_2>t_1$, if the following sufficient conditions are met:
+\begin{enumerate}
+  \item $\left \| \vec{F}_{t_1} \right \|= 0$
+  \item $\left \| \vec{F}_{t_2} \right \|> 0$
+  \item $(\vec{v}_{A,B})_{t_1} \cdot \vec{F}_{t_2} < 0$.  
+  % \item $\frac{\vec{v}_{t_1}\dot$\vec{F}_{t_2}}{ \left \| \vec{F}_{t_2} \right \| }  > 0$
+\end{enumerate}
+  
+  The third conditions evaluates the velocity in direction of the force vector to ensure that contact was not already previously established. Without it, an impact may be detected between two bodies that do not move.
+
+  In practice, these conditions are hard to evaluate. We do not know the velocity of the end-effector to the contact surface, and the force estimations are hardly ever exactly equal to zero. Therefore, the conditions are changed to
+
+  \begin{enumerate}
+  \item $\left \| \vec{F}_{t_1} \right \|< b_F$
+  \item $\left \| \vec{F}_{t_2} \right \|> 2b_F$
+  \item $(\vec{v}_{E,W})_{t_1} \cdot \vec{F}_{t_2} < -b_v$  
+\end{enumerate}
+  where $b_F$ and $b_v$ are bounds that should be larger than errors in the force and velocity estimations respectively. Furthermore $\vec{v}_{E,W}$ is the velocity of the end effector with respect to the world frame.
+
+  These more practical conditions are not perfect. Low-velocity impacts or impacts with low forces will not be detected. Furthermore, when the robot is static and another object bumps into it, this will not be classified as impact. Nevertheless, this is not a problem in the desired usecase, and more importantly, there will be no false-positive impact detections. 
+
+  The hybrid impact detection method was evaluated experimentally. The vertical lines in Figure \ref{fig:force_pos_detection} are the results of this impact detection scheme, with $b_F = 8$ N, and $b_v = 0.05$~m/s. 
+
+
+  \newpage
+  \section{Impedance control with reference spreading}
+  To evaluate impedance control with reference spreading, firstly a demonstration was performed where the end effector stamps the table twice. A metal plate with a thickness of approximately 10mm was placed on the table during the demonstration, so that it may later be removed to move the impact surface. The extracted and extended references in z-direction are shown in Figure \ref{fig:spreading}.
+
+  The generated references were applied in configurations where the impact surface was 10 mm lower, the same height, or 30 mm higher. Furthermore each of these configurations was evaluated with- and without reference spreading. The results are shown in Figure \ref{fig:results_-10mm}-\ref{fig:results_30mm}. 
+
+  Looking at the figures, there are no significant improvements when using reference spreading as opposed to not using reference spreading when looking at tracking errors, external forces, or motor torques. Since the reference is based on the motions of the VR device, the reference does not contain any jumps, and therefore reference spreading does add the value of aligning jumps in the reference and in reality. This is visualized in Figure \ref{fig:RSvive}.
+
+  There might still be some opportunities with reference spreading, however this would require a jump to be introduced in the reference. This could be done based on the jumps in the tracked velocity during the demonstration. It should be considered, however, whether introducing jumps into a reference is actually beneficial. Another approach could be briefly reducing damping after impact, or setting the velocity reference to zero for a short while.
+
+  \begin{figure}[]
+  \centering
+  \begin{adjustwidth}{0pt}{5pt}
+  \includegraphics[right]{Graphics/spreading.pdf}
+  \end{adjustwidth}
+  \caption{Reference extracted for stamping task, together with the extended references. The value of $j$ relates to how many jumps have occurred.}
+  \label{fig:spreading}
+  \end{figure}
+
+    \begin{figure}[]
+  \centering
+  \begin{adjustwidth}{0pt}{5pt}
+  \includegraphics[right]{Graphics/RSvive.pdf}
+  \end{adjustwidth}
+  \caption{When the reference contains a jump that is misaligned with the jump that is actually tracked, the error peaks. When the reference does not contain a jump, as is the case with the reference directly extracted from the VR device during demonstration, there is no peak in the tracking error.}
+  \label{fig:RSvive}
+  \end{figure}
+
+ \begin{figure}[]
+  \centering
+  \begin{adjustwidth}{0pt}{5pt}
+  \includegraphics[right]{Graphics/result-10mm.pdf}
+  % \includegraphics[right]{Graphics/result_torque-10mm.pdf}
+  \end{adjustwidth}
+  \caption{Results of stamping experiment with and without reference spreading. Only the z-direction in carthesian space is shown. The contact surface is 10 mm lower than during the demonstration.}
+  \label{fig:results_-10mm}
+  \end{figure}
+
+
+ \begin{figure}[]
+  \centering
+  \begin{adjustwidth}{0pt}{5pt}
+  \includegraphics[right]{Graphics/result0mm.pdf}
+  % \includegraphics[right]{Graphics/result_torque0mm.pdf}
+  \end{adjustwidth}
+  \caption{Results of stamping experiment with and without reference spreading. Only the z-direction in carthesian space is shown. The contact surface is the same height as during the demonstration.}
+  \label{fig:results_0mm}
+  \end{figure}
+
+ \begin{figure}[]
+  \centering
+  \begin{adjustwidth}{0pt}{5pt}
+  \includegraphics[right]{Graphics/result30mm.pdf}
+  % \includegraphics[right]{Graphics/result_torque-10mm.pdf}
+
+  \end{adjustwidth}
+  \caption{Results of stamping experiment with and without reference spreading. Only the z-direction in carthesian space is shown. The contact surface is 30 mm higher than during the demonstration.}
+  \label{fig:results_30mm}
+  \end{figure}
 % BIBLIOGRAPHY
 
   \newpage
