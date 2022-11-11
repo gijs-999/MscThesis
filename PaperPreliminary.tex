@@ -14,12 +14,12 @@
     \input{bibconfig.tex}
 
     % The following packages can be found on http:\\www.ctan.org
-    %\usepackage{graphics} % for pdf, bitmapped graphics files
-    %\usepackage{epsfig} % for postscript graphics files
-    %\usepackage{mathptmx} % assumes new font selection scheme installed
-    %\usepackage{mathptmx} % assumes new font selection scheme installed
-    %\usepackage{amsmath} % assumes amsmath package installed
-    %\usepackage{amssymb}  % assumes amsmath package installed
+    \usepackage{graphics} % for pdf, bitmapped graphics files
+    \usepackage{epsfig} % for postscript graphics files
+    \usepackage{mathptmx} % assumes new font selection scheme installed
+    \usepackage{mathptmx} % assumes new font selection scheme installed
+    \usepackage{amsmath} % assumes amsmath package installed
+    \usepackage{amssymb}  % assumes amsmath package installed
 
     \title{\LARGE \bf
     Experimental Validation of Reference Spreading for Robotic Manipulation of Unmodeled Objects
@@ -71,7 +71,7 @@
 
     Automation has historically played a crucial role in the logistics industry. Our current way of living depends on autonomous systems for global transportation and warehousing. The growing labor shortage and increasing demand for online retail motivate further developments in the logistics sector~\cite{dekhneAutomationLogisticsBig2019}.
 
-    A logistical aspect where machines sometimes struggle to compete with humans is object manipulation. Practical examples of this include order picking or depalletizing. While robots are strong and consistent when manipulating objects, humans are versatile and swift. Robots are held back from faster performance because they must often slow down prior to making contact; establishing contact at a high velocity -- an event referred to as an impact -- could cause damage to the robot or its environment. On the contrary, humans intrinsically exploit impacts in the form of grabbing, bouncing and hitting.
+    A logistical aspect where machines struggle to fully compete with humans is object manipulation. Practical examples of this include order picking or depalletizing. While robots are strong and consistent when manipulating objects, humans are versatile and swift. Robots are held back from faster performance because they must often slow down prior to making contact; establishing contact at a high velocity -- an event referred to as an impact -- could cause damage to the robot or its environment. On the contrary, humans intrinsically exploit impacts in the form of grabbing, bouncing and hitting.
 
     The field of impact-aware control aims to better equip robots for making contact at high velocities. These impacts are paired with large contact forces that could damage the system. Previous work describes model predictive control using the maximum allowable impact velocity that complies with safety constraints such as limits for the contact force~\cite{dehioRobotSafeImpactsSoft2021, dehioDualArmBoxGrabbing2022}. This was combined with a compliant cover for the robot that reduces contact forces at impact, facilitating higher feasible impact velocities. Rather than using a soft cover, compliancy may also be achieved by designing a robot with low inertia and high backdrivability as was done in \cite{songDevelopmentLowInertiaHighStiffness2018}.
 
@@ -88,18 +88,76 @@
     Impact-driven velocity jumps could instead be inferred experimentally. In previous studies \cite{aouajPredictingPostImpactVelocity2021}, the control gains are reduced to zero upon detection of the impact while inferring an impact map, so that the velocity jump would not result in excessive motor torques.
     A different model-free motion planning strategy is proposed, which not only produces velocity-reference jumps that are coherent with the system dynamics, but also leverages human intuition to generate fluid motions before and after the impact. This is achieved by introducing a human in the loop by means of teleoperation. %(This strategy introduces a human in the loop by means of teleoperation; the operator performs a demonstration, after which a reference can be extracted. During the demonstration, the control gains are relatively low. This mitigates the torque jumps at the time of impact, meaning that the controller does not need to be turned off. The teleoperator instinctively accounts for the low control gains and can perform precise motion tasks despite poor tracking of the controller.)
 
-    \textbf{2. Impact detection}: The reference spreading scheme should switch from ante- to post-impact references at the appropriate time. This requires an impact detection algorithm. Approaches in literature look either at position data \cite{rijnenMotionSignalsVelocity2018} or external force estimations \cite{uitendaalTeachingRobotsInteraction2022,properAimAwareCollisionMonitoring2021,properValidationNumericalSimultaneous2022} for signs that could be caused by impacts. We show that these signs are necessary, but not sufficient conditions for an impact -- only looking at position or contact force can result in false positives. To limit false detection of impacts, a novel impact detector that looks at both force and position data is described.
+    \textbf{2. Impact detection}: The reference spreading scheme should switch from ante- to post-impact references at the appropriate time. This requires an impact detection algorithm. Approaches in literature look either at position data \cite{rijnenMotionSignalsVelocity2018} or external force estimations \cite{uitendaalTeachingRobotsInteraction2022,properAimAwareCollisionMonitoring2021,properValidationNumericalSimultaneous2022} for signs that could be caused by impacts. We show that these signs are necessary, but not sufficient conditions for an impact -- only looking at position or contact force can result in false positives. To limit false detection of impacts, a novel impact detector that looks at both force and position data is proposed and evaluated.
 
-    \textbf{3. custom end effector, impedance control without inertia shaping with wrench saturation through stiffness optimization, contact task controller. Can these aspects be considered contributions?}
+    \textbf{3. Custom end effector:}
+
+    \textbf{4. Intermediate impact phase controller:}
+
+    \textbf{x. custom end effector, impedance control without inertia shaping with wrench saturation through stiffness optimization, contact task controller. Can these aspects be considered contributions?}
     %words: warehouse, material handling, packaging, transport
 
 % Section
+    \section{System overview}
+    Considering the goal of evaluating reference spreading in a practial usecase, this work will focus on a dual-arm robotic setup. Having two arms increases the maximum payload. Furthermore, some object manipulation tasks, such as grabbing, require contact from multiple sides. The impact tasks that are considerd in this work are stamping, swiping, grabbing, and tilting. 
+
+    The Franka Emika robot \cite{haddadinFrankaEmikaRobot2022} is used for the setup as it is affordable and, more importantly, capable of torque control which is critical for impact-aware manipulation. The robot uses harmonic drives that inherently have poor backdriveability, however, torque control is still possible thanks to the torque sensors. 
+
+    The system is limited in certain aspects to make it more representative of affordable setups in industry. In contrast to other object-manipulation works, we do not employ object pose estimation, environment models, or exteroceptive force/torque sensors. 
+
+    \subsection{Robot dynamics}
+    The robot dynamics can be modeled as 
+    $$M(q)\ddot{q}+h(q,\dot{q})= \tau_{cmd} + \sum_{i=1}^n J_i^TF_{c,i}$$
+    with inertia matrix $M$, joint accelerations $\ddot{q}$, centrifugal, coriolis and gravity terms $h$, and commanded torque $\tau_{cmd}$. The robot has $n$ contacts, and for each contact i there is an external contact wrench $F_{c,i}$. The wrench's contribution on joint level is related through contact jacobian $J_i$ for which it holds that $\begin{bmatrix} \omega & \dot{p} \end{bmatrix}_i^T=J_i\dot{q}$, with $\omega$ the angular velocity of the contact body and $\dot{p}$ the carthesian velocity of the contact point. 
+
+    For control purposes, it is assumed that contact forces only act on the end effector body. These forces are modeled as if they act at the same control point $p$, which is chosen as the intersection of robot link 5 and 7. Furthermore, omitting dependency on $q$ and $\dot{q}$ for brevity results in
+
+    $$M\ddot{q}+h=\tau_{cmd}+J^TF_c.$$
+
+    \subsection{Base controller}
+    For articulated robot arms, it is convenient to control the pose of the end effector, rather than controlling the joint angles. This can be accomplised with an impedance controller.
+
+    The desired impedance behaviour is 
+    $$\Lambda \begin{bmatrix} \dot{\omega} - \dot{\omega}_{r} \\ \ddot{p} - \ddot{p}_{r} \end{bmatrix} + D \begin{bmatrix} {\omega} - {\omega}_{r} \\ \dot{p} - \dot{p}_{r} \end{bmatrix}  + K \begin{bmatrix} e_{rot} \\ {p} - {p}_{r} \end{bmatrix} = F_c-F_{c,r}:$$
+ a mass spring damper with with task-space inertia, damping and stiffness matrices $\Lambda$, $D$ and $K$, and rotation tracking error $e_{rot}$ as defined in Appendix xxx. Subscript $r$ denotes a reference.
+
+Stifness $K$ is typically chosen as a diagonal matrix. The damping matrix is determined following $D = 2(\Lambda K)^{\frac{1}{2}}$ which guarantees stable behavior when $K$ and $\Lambda$ are symmetric. Furthermore, For the inertia matrix, there are two options. Choosing a diagonal matrix $\Lambda$ decouples the accelerations w.r.t. to $e$, resulting in better tracking in free motion. In this work however, the task-space inertia is set to match the joint-space inertia following $\Lambda = JM^{-1}J$, decoupling the contact force w.r.t. $e$ for better performance during contact. Further motivation for this decision is provided in Appendix xxx. % = \begin{bmatrix} e_{rotation} & e_{translation} \end{bmatrix}^T $. 
+
+Based on (x), the desired task-space accelerations are given by
+$$\begin{bmatrix} \dot{\omega}\\ \ddot{p}\end{bmatrix} = \begin{bmatrix} \dot{\omega}_{r}\\ \ddot{p}_{r}\end{bmatrix} + \Lambda^{-1} \left (  D \begin{bmatrix} {\omega} - {\omega}_{r} \\ \dot{p} - \dot{p}_{r} \end{bmatrix}  + K \begin{bmatrix} e_{rot} \\ {p} - {p}_{r} \end{bmatrix} +F_{c,r} \right ).$$
+Note the exclusion of $F_c$ as the exerted contact wrench is not modeled and therefore unknown. The Quadratic Programming framework \textit{mc\_rtc} is used to find $\tau_{cmd}$ so that the weighted squared error between the desired and actual accelerations is minimized while accounting for the system's dynamics and safety constraints such as maximum joint torques and velocities. The described impedance task only tracks 6 DoF's however, leaving one redundant DoF of the Franka Emika robot. To resolve this, one more task which describes the desired acceleration of the first robot joint is added. This so-called posture task with stiffness $k_p$ is given by
+$$\ddot{q}_1 = 2\sqrt{k_p}\dot{q}_1+k_p(q_1-q_{1,r}).$$
+An overview of the used control parameters is given in Table xxx.
+
+\begin{table}[h]
+\centering
+\begin{tabular}{l|l}
+\hline
+Parameter & Value                                                \\ \hline
+$q_{1,r}$     & 0 rad                                              \\
+$k_t$     & 800 N/m                                              \\
+$k_r$     & 50 Nm/rad                                            \\
+$k_p$     & 50 Nm/rad                                            \\
+$K$       & $\begin{bmatrix} k_r I &0 \\ 0 & k_t I\end{bmatrix}$
+\end{tabular}
+\end{table}
+
+    \section{Teleoperation}
+
+    \section{Reference spreading controller}
+
+
+% Section
     \section{Controller}
+    Impedance controller passes the following task-space acceleration to the QP scheme:
     $$\ddot{p}_t = \ddot{p}_d + \Lambda^{-1}F_{imp}$$
-    With 
-    $$F_{imp} = D (\dot{p}_d-\dot{p}_t) + K((p_d+K^{-1}F_{ref})-p_t) $$
+    with 
+    $$F_{imp} =  K(p_d-p_t)+D (\dot{p}_d-\dot{p}_t) +F_{ref} $$
+    during the ante- or post impact phase. During the intermediate impact phase, this $F_{imp}$ is changed to 
+    $$F_{imp} =  K(p_d-p_t)+ \gamma [ D (\dot{p}_d-\dot{p}_t) +F_{ref}] $$
+    with $$\gamma = \frac{ t_{impact}-t_{current}}{T_{intermediate}}.$$ Once $\gamma \leq 1$, intermidate impact mode is switched to post-impact mode is enabled.
 
-
+    Task-space intertia matrix $\Lambda$ is found following $$\Lambda = $$
     \subsection{Selecting a Template (Heading 2)}
 
     First, confirm that you have the correct template for your paper size. This template has been tailored for output on the US-letter paper size. Please do not use it for A4 paper since the margin requirements for A4 papers may be different from Letter paper size.
