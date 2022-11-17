@@ -73,11 +73,11 @@
 
     A logistical aspect where machines struggle to fully compete with humans is object manipulation. Practical examples of this include order picking or depalletizing. While robots are strong and consistent when manipulating objects, humans are versatile and swift. Robots are held back from faster performance because they must often slow down prior to making contact; establishing contact at a high velocity -- an event referred to as an impact -- could cause damage to the robot or its environment. On the contrary, humans intrinsically exploit impacts in the form of grabbing, bouncing and hitting.
 
-    The field of impact-aware control aims to better equip robots for making contact at high velocities. These impacts are paired with large contact forces that could damage the system. Previous work describes model predictive control using the maximum allowable impact velocity that complies with safety constraints such as limits for the contact force~\cite{dehioRobotSafeImpactsSoft2021, dehioDualArmBoxGrabbing2022}. This was combined with a compliant cover for the robot that reduces contact forces at impact, facilitating higher feasible impact velocities. Rather than using a soft cover, compliancy may also be achieved by designing a robot with low inertia and high backdrivability as was done in \cite{songDevelopmentLowInertiaHighStiffness2018}.
+    The field of impact-aware control aims to better equip robots for making contact at high velocities. These impacts are paired with large contact forces that could damage the system. Previous work describes control using the maximum allowable impact velocity that complies with safety constraints such as limits for the contact force~\cite{dehioRobotSafeImpactsSoft2021, dehioDualArmBoxGrabbing2022}. This was combined with a compliant cover for the robot that reduces contact forces at impact, facilitating higher feasible impact velocities. Rather than using a soft cover, compliancy may also be achieved by designing a robot with low inertia and high backdrivability as was done in \cite{songDevelopmentLowInertiaHighStiffness2018}.
 
-    In addition to the large contact forces, the velocity jump at the time of impact is also a subject of interest. Time misalignments between velocity jumps in the reference and in the actual system cause the velocity tracking error to peak\cite{biemondTrackingControlMechanical2012}, as is shown in Figure xxx. This error peak results in undesired control effort and should therefore be avoided. In \cite{yangImpactInvariantControl2021}, the robot's velocities are projected into an impact-invariant subspace based on the expected point of impact. As a result, impact-driven peaks in the velocity tracking error are reduced significantly. It is not always possible to describe a point of impact, however. Often times, impacts occur between surfaces rather than just points. Furthermore, corners of the surface may impact at diverging intervals in uncertain order during what is called near-simultaneous impacts, shown in Figure xxx.
+    In addition to the large contact forces, a subject of interest is the velocity jump at the time of impact. Time misalignments between velocity jumps in the reference and in the actual system cause the velocity tracking error to peak\cite{biemondTrackingControlMechanical2012}, as is shown in Figure xxx. This error peak results in undesired control effort and should therefore be avoided. In \cite{yangImpactInvariantControl2021}, the robot's velocities are projected into an impact-invariant subspace based on the expected point of impact. As a result, impact-driven peaks in the velocity tracking error are reduced significantly. It is not always possible to describe a point of impact, however. Often times, impacts occur between surfaces rather than just points. Furthermore, corners of the surface may impact at diverging intervals in uncertain order during what is called near-simultaneous impacts, shown in Figure xxx.
 
-    The impact-aware control scheme called Reference Spreading \cite{sacconSensitivityAnalysisHybrid2014} also addresses error peaking caused by misaligned impacts. It operates on the basis of a tracking error that switches once an impact is detected. This concept is best explained at the hand of Figure xxx. The reference is split at the nominal impact time into an ante- and post impact reference. These references are then extended. Initially, the tracking error is based on the extended ante-impact reference, but this is switched to the post-impact reference once an impact is detected. Evidently, this can reduce the error peaking.
+    The impact-aware control scheme called Reference Spreading \cite{sacconSensitivityAnalysisHybrid2014} addresses error peaking caused by misaligned impacts. It operates on the basis of a tracking error that switches once an impact is detected. This concept is best explained at the hand of Figure xxx. The reference is split at the nominal impact time into an ante- and post impact reference. These references are then extended. Initially, the tracking error is based on the extended ante-impact reference, but this is switched to the post-impact reference once an impact is detected. Evidently, this can reduce the error peaking.
 
     Reference spreading can also handle simultaneous impacts. \cite{vansteenRobotControlSimultaneous2021} (explanation)
 
@@ -88,199 +88,155 @@
     Impact-driven velocity jumps could instead be inferred experimentally. In previous studies \cite{aouajPredictingPostImpactVelocity2021}, the control gains are reduced to zero upon detection of the impact while inferring an impact map, so that the velocity jump would not result in excessive motor torques.
     A different model-free motion planning strategy is proposed, which not only produces velocity-reference jumps that are coherent with the system dynamics, but also leverages human intuition to generate fluid motions before and after the impact. This is achieved by introducing a human in the loop by means of teleoperation. %(This strategy introduces a human in the loop by means of teleoperation; the operator performs a demonstration, after which a reference can be extracted. During the demonstration, the control gains are relatively low. This mitigates the torque jumps at the time of impact, meaning that the controller does not need to be turned off. The teleoperator instinctively accounts for the low control gains and can perform precise motion tasks despite poor tracking of the controller.)
 
-    \textbf{2. Impact detection}: The reference spreading scheme should switch from ante- to post-impact references at the appropriate time. This requires an impact detection algorithm. Approaches in literature look either at position data \cite{rijnenMotionSignalsVelocity2018} or external force estimations \cite{uitendaalTeachingRobotsInteraction2022,properAimAwareCollisionMonitoring2021,properValidationNumericalSimultaneous2022} for signs that could be caused by impacts. We show that these signs are necessary, but not sufficient conditions for an impact -- only looking at position or contact force can result in false positives. To limit false detection of impacts, a novel impact detector that looks at both force and position data is proposed and evaluated.
+    \textbf{2. Impact detection}: The reference spreading scheme should switch between ante-, intermediate-, and post-impact references at the appropriate time. This requires an impact detection algorithm. Approaches in literature look either at position data \cite{rijnenMotionSignalsVelocity2018} or external force estimations \cite{uitendaalTeachingRobotsInteraction2022,properAimAwareCollisionMonitoring2021,properValidationNumericalSimultaneous2022} for signs that could be caused by impacts. We show that these signs are necessary, but not sufficient conditions for an impact -- only looking at position or contact force can result in false positives. To limit false detection of impacts, a novel impact detector that looks at both force and position data is proposed and evaluated.
 
     \textbf{3. Custom end effector:}
 
     \textbf{4. Intermediate impact phase controller:}
 
-    \textbf{x. custom end effector, impedance control without inertia shaping with wrench saturation through stiffness optimization, contact task controller. Can these aspects be considered contributions?}
-    %words: warehouse, material handling, packaging, transport
-
-% Section
+% System overview
     \section{System overview}
     Considering the goal of evaluating reference spreading in a practial usecase, this work will focus on a dual-arm robotic setup. Having two arms increases the maximum payload. Furthermore, some object manipulation tasks, such as grabbing, require contact from multiple sides. The impact tasks that are considerd in this work are stamping, swiping, grabbing, and tilting. 
 
     The Franka Emika robot \cite{haddadinFrankaEmikaRobot2022} is used for the setup as it is affordable and, more importantly, capable of torque control which is critical for impact-aware manipulation. The robot uses harmonic drives that inherently have poor backdriveability, however, torque control is still possible thanks to the torque sensors. 
 
-    The system is limited in certain aspects to make it more representative of affordable setups in industry. In contrast to other object-manipulation works, we do not employ object pose estimation, environment models, or exteroceptive force/torque sensors. 
+    The system is limited in certain aspects to make it more representative of affordable setups in industry; in contrast to other object-manipulation works, we do not employ object pose estimation, environment models, or exteroceptive force/torque sensors. 
 
     \subsection{Robot dynamics}
     The robot dynamics can be modeled as 
-    $$M(q)\ddot{q}+h(q,\dot{q})= \tau_{cmd} + \sum_{i=1}^n J_i^TF_{c,i}$$
+    \begin{equation}
+    M(q)\ddot{q}+h(q,\dot{q})= \tau_{cmd} + \sum_{i=1}^n J_i^TF_{c,i}
+    \end{equation}
+    
     with inertia matrix $M$, joint accelerations $\ddot{q}$, centrifugal, coriolis and gravity terms $h$, and commanded torque $\tau_{cmd}$. The robot has $n$ contacts, and for each contact i there is an external contact wrench $F_{c,i}$. The wrench's contribution on joint level is related through contact jacobian $J_i$ for which it holds that $\begin{bmatrix} \omega & \dot{p} \end{bmatrix}_i^T=J_i\dot{q}$, with $\omega$ the angular velocity of the contact body and $\dot{p}$ the carthesian velocity of the contact point. 
 
     For control purposes, it is assumed that contact forces only act on the end effector body. These forces are modeled as if they act at the same control point $p$, which is chosen as the intersection of robot link 5 and 7. Furthermore, omitting dependency on $q$ and $\dot{q}$ for brevity results in
 
-    $$M\ddot{q}+h=\tau_{cmd}+J^TF_c.$$
+    \begin{equation}
+    M\ddot{q}+h=\tau_{cmd}+J^TF_c.
+    \end{equation}
 
     \subsection{Base controller}
     For articulated robot arms, it is convenient to control the pose of the end effector, rather than controlling the joint angles. This can be accomplised with an impedance controller.
 
-    The desired impedance behaviour is 
-    $$\Lambda \begin{bmatrix} \dot{\omega} - \dot{\omega}_{r} \\ \ddot{p} - \ddot{p}_{r} \end{bmatrix} + D \begin{bmatrix} {\omega} - {\omega}_{r} \\ \dot{p} - \dot{p}_{r} \end{bmatrix}  + K \begin{bmatrix} e_{rot} \\ {p} - {p}_{r} \end{bmatrix} = F_c-F_{c,r}:$$
- a mass spring damper with with task-space inertia, damping and stiffness matrices $\Lambda$, $D$ and $K$, and rotation tracking error $e_{rot}$ as defined in Appendix xxx. Subscript $r$ denotes a reference.
-
-Stifness $K$ is typically chosen as a diagonal matrix. The damping matrix is determined following $D = 2(\Lambda K)^{\frac{1}{2}}$ which guarantees stable behavior when $K$ and $\Lambda$ are symmetric. Furthermore, For the inertia matrix, there are two options. Choosing a diagonal matrix $\Lambda$ decouples the accelerations w.r.t. to $e$, resulting in better tracking in free motion. In this work however, the task-space inertia is set to match the joint-space inertia following $\Lambda = JM^{-1}J$, decoupling the contact force w.r.t. $e$ for better performance during contact. Further motivation for this decision is provided in Appendix xxx. % = \begin{bmatrix} e_{rotation} & e_{translation} \end{bmatrix}^T $. 
-
-Based on (x), the desired task-space accelerations are given by
-$$\begin{bmatrix} \dot{\omega}\\ \ddot{p}\end{bmatrix} = \begin{bmatrix} \dot{\omega}_{r}\\ \ddot{p}_{r}\end{bmatrix} + \Lambda^{-1} \left (  D \begin{bmatrix} {\omega} - {\omega}_{r} \\ \dot{p} - \dot{p}_{r} \end{bmatrix}  + K \begin{bmatrix} e_{rot} \\ {p} - {p}_{r} \end{bmatrix} +F_{c,r} \right ).$$
-Note the exclusion of $F_c$ as the exerted contact wrench is not modeled and therefore unknown. The Quadratic Programming framework \textit{mc\_rtc} is used to find $\tau_{cmd}$ so that the weighted squared error between the desired and actual accelerations is minimized while accounting for the system's dynamics and safety constraints such as maximum joint torques and velocities. The described impedance task only tracks 6 DoF's however, leaving one redundant DoF of the Franka Emika robot. To resolve this, one more task which describes the desired acceleration of the first robot joint is added. This so-called posture task with stiffness $k_p$ is given by
-$$\ddot{q}_1 = 2\sqrt{k_p}\dot{q}_1+k_p(q_1-q_{1,r}).$$
-An overview of the used control parameters is given in Table xxx.
-
-\begin{table}[h]
-\centering
-\begin{tabular}{l|l}
-\hline
-Parameter & Value                                                \\ \hline
-$q_{1,r}$     & 0 rad                                              \\
-$k_t$     & 800 N/m                                              \\
-$k_r$     & 50 Nm/rad                                            \\
-$k_p$     & 50 Nm/rad                                            \\
-$K$       & $\begin{bmatrix} k_r I &0 \\ 0 & k_t I\end{bmatrix}$
-\end{tabular}
-\end{table}
-
-    \section{Teleoperation}
-
-    \section{Reference spreading controller}
-
-
-% Section
-    \section{Controller}
-    Impedance controller passes the following task-space acceleration to the QP scheme:
-    $$\ddot{p}_t = \ddot{p}_d + \Lambda^{-1}F_{imp}$$
-    with 
-    $$F_{imp} =  K(p_d-p_t)+D (\dot{p}_d-\dot{p}_t) +F_{ref} $$
-    during the ante- or post impact phase. During the intermediate impact phase, this $F_{imp}$ is changed to 
-    $$F_{imp} =  K(p_d-p_t)+ \gamma [ D (\dot{p}_d-\dot{p}_t) +F_{ref}] $$
-    with $$\gamma = \frac{ t_{impact}-t_{current}}{T_{intermediate}}.$$ Once $\gamma \leq 1$, intermidate impact mode is switched to post-impact mode is enabled.
-
-    Task-space intertia matrix $\Lambda$ is found following $$\Lambda = $$
-    \subsection{Selecting a Template (Heading 2)}
-
-    First, confirm that you have the correct template for your paper size. This template has been tailored for output on the US-letter paper size. Please do not use it for A4 paper since the margin requirements for A4 papers may be different from Letter paper size.
-
-    \subsection{Maintaining the Integrity of the Specifications}
-
-    The template is used to format your paper and style the text. All margins, column widths, line spaces, and text fonts are prescribed; please do not alter them. You may note peculiarities. For example, the head margin in this template measures proportionately more than is customary. This measurement and others are deliberate, using specifications that anticipate your paper as one part of the entire proceedings, and not as an independent document. Please do not revise any of the current designations
-
-% Section
-    \section{MATH}
-
-    Before you begin to format your paper, first write and save the content as a separate text file. Keep your text and graphic files separate until after the text has been formatted and styled. Do not use hard tabs, and limit use of hard returns to only one return at the end of a paragraph. Do not add any kind of pagination anywhere in the paper. Do not number text heads-the template will do that for you.
-
-    Finally, complete content and organizational editing before formatting. Please take note of the following items when proofreading spelling and grammar:
-
-    \subsection{Abbreviations and Acronyms} Define abbreviations and acronyms the first time they are used in the text, even after they have been defined in the abstract. Abbreviations such as IEEE, SI, MKS, CGS, sc, dc, and rms do not have to be defined. Do not use abbreviations in the title or heads unless they are unavoidable.
-
-    \subsection{Units}
-
-    \begin{itemize}
-
-    \item Use either SI (MKS) or CGS as primary units. (SI units are encouraged.) English units may be used as secondary units (in parentheses). An exception would be the use of English units as identifiers in trade, such as ``3.5-inch disk drive''.
-    \item Avoid combining SI and CGS units, such as current in amperes and magnetic field in oersteds. This often leads to confusion because equations do not balance dimensionally. If you must use mixed units, clearly state the units for each quantity that you use in an equation.
-    \item Do not mix complete spellings and abbreviations of units: ``Wb/m2'' or ``webers per square meter'', not ``webers/m2''.  Spell out units when they appear in text: ``\ldots a few henries'', not ``\ldots a few H''.
-    \item Use a zero before decimal points: ``0.25'', not ``.25''. Use ``cm$^3$'', not ``cc''. (bullet list)
-
-    \end{itemize}
-
-
-    \subsection{Equations}
-
-    The equations are an exception to the prescribed specifications of this template. You will need to determine whether or not your equation should be typed using either the Times New Roman or the Symbol font (please no other font). To create multileveled equations, it may be necessary to treat the equation as a graphic and insert it into the text after your paper is styled. Number equations consecutively. Equation numbers, within parentheses, are to position flush right, as in (1), using a right tab stop. To make your equations more compact, you may use the solidus ( / ), the exp function, or appropriate exponents. Italicize Roman symbols for quantities and variables, but not Greek symbols. Use a long dash rather than a hyphen for a minus sign. Punctuate equations with commas or periods when they are part of a sentence, as in
+    The desired impedance behaviour is
     \begin{equation}
-    \alpha + \beta = \chi
+     \Lambda \begin{bmatrix} \dot{\omega} - \dot{\omega}_{t} \\ \ddot{p} - \ddot{p}_{t} \end{bmatrix} + D \begin{bmatrix} {\omega} - {\omega}_{t} \\ \dot{p} - \dot{p}_{t} \end{bmatrix}  + K \begin{bmatrix} e_{rot} \\ {p} - {p}_{t} \end{bmatrix} = F_c-F_{c,t}:
+     \end{equation} 
+
+    a mass spring damper with with task-space inertia, damping and stiffness matrices $\Lambda$, $D$ and $K$, and rotation tracking error $e_{rot}$ as defined in Appendix xxx. Subscript $t$ denotes a target.
+
+    Stifness $K$ is typically chosen as a diagonal matrix. The damping matrix is determined following $D = 2(\Lambda K)^{\frac{1}{2}}$ which guarantees stable behavior when $K$ and $\Lambda$ are symmetric. Furthermore, For the inertia matrix, two options were considered. Choosing a diagonal matrix $\Lambda$ decouples the accelerations w.r.t. to $e$, resulting in better tracking in free motion. In this work however, the task-space inertia is set to match the joint-space inertia following $\Lambda = JM^{-1}J$, decoupling the contact force w.r.t. $e$ for better performance during contact. Further motivation for this decision is provided in Appendix xxx. % = \begin{bmatrix} e_{rotation} & e_{translation} \end{bmatrix}^T $. 
+
+    Based on (x), the desired task-space accelerations are given by
+    
+    \begin{equation}
+    \begin{bmatrix} \dot{\omega}\\ \ddot{p}\end{bmatrix} = \begin{bmatrix} \dot{\omega}_{t}\\ \ddot{p}_{t}\end{bmatrix} + \Lambda^{-1} \left (  D \begin{bmatrix} {\omega} - {\omega}_{t} \\ \dot{p} - \dot{p}_{t} \end{bmatrix}  + K \begin{bmatrix} e_{rot} \\ {p} - {p}_{t} \end{bmatrix} +F_{c,t} \right ).
     \end{equation}
 
-    Note that the equation is centered using a center tab stop. Be sure that the symbols in your equation have been defined before or immediately following the equation. Use ``(1)'', not ``Eq. (1)'' or ``equation (1)'', except at the beginning of a sentence: ``Equation (1) is\ldots''
-
-    \subsection{Some Common Mistakes}
-    \begin{itemize}
-
-
-    \item The word ``data'' is plural, not singular.
-    \item The subscript for the permeability of vacuum ?0, and other common scientific constants, is zero with subscript formatting, not a lowercase letter ``o''.
-    \item In American English, commas, semi-/colons, periods, question and exclamation marks are located within quotation marks only when a complete thought or name is cited, such as a title or full quotation. When quotation marks are used, instead of a bold or italic typeface, to highlight a word or phrase, punctuation should appear outside of the quotation marks. A parenthetical phrase or statement at the end of a sentence is punctuated outside of the closing parenthesis (like this). (A parenthetical sentence is punctuated within the parentheses.)
-    \item A graph within a graph is an ``inset'', not an ``insert''. The word alternatively is preferred to the word ``alternately'' (unless you really mean something that alternates).
-    \item Do not use the word ``essentially'' to mean ``approximately'' or ``effectively''.
-    \item In your paper title, if the words ``that uses'' can accurately replace the word ``using'', capitalize the ``u''; if not, keep using lower-cased.
-    \item Be aware of the different meanings of the homophones ``affect'' and ``effect'', ``complement'' and ``compliment'', ``discreet'' and ``discrete'', ``principal'' and ``principle''.
-    \item Do not confuse ``imply'' and ``infer''.
-    \item The prefix ``non'' is not a word; it should be joined to the word it modifies, usually without a hyphen.
-    \item There is no period after the ``et'' in the Latin abbreviation ``et al.''.
-    \item The abbreviation ``i.e.'' means ``that is'', and the abbreviation ``e.g.'' means ``for example''.
-
-    \end{itemize}
-
-% Section
-    \section{USING THE TEMPLATE}
-
-    Use this sample document as your LaTeX source file to create your document. Save this file as {\bf root.tex}. You have to make sure to use the cls file that came with this distribution. If you use a different style file, you cannot expect to get required margins. Note also that when you are creating your out PDF file, the source file is only part of the equation. \emph{Your \TeX\ $\rightarrow$ PDF filter determines the output file size. Even if you make all the specifications to output a letter file in the source - if you filter is set to produce A4, you will only get A4 output.}
-
-    It is impossible to account for all possible situation, one would encounter using \TeX. If you are using multiple \TeX\ files you must make sure that the ``MAIN`` source file is called root.tex - this is particularly important if your conference is using PaperPlaza's built in \TeX\ to PDF conversion tool.
-
-    \subsection{Headings, etc}
-
-    Text heads organize the topics on a relational, hierarchical basis. For example, the paper title is the primary text head because all subsequent material relates and elaborates on this one topic. If there are two or more sub-topics, the next level head (uppercase Roman numerals) should be used and, conversely, if there are not at least two sub-topics, then no subheads should be introduced. Styles named ``Heading 1'', ``Heading 2'', ``Heading 3'', and ``Heading 4'' are prescribed.
-
-    \subsection{Figures and Tables}
-
-    Positioning Figures and Tables: Place figures and tables at the top and bottom of columns. Avoid placing them in the middle of columns. Large figures and tables may span across both columns. Figure captions should be below the figures; table heads should appear above the tables. Insert figures and tables after they are cited in the text. Use the abbreviation ``Fig. 1'', even at the beginning of a sentence.
-
+    Note the exclusion of $F_c$ as the exerted contact wrench is not modeled and therefore unknown. Quadratic Programming is used to find $\tau_{cmd}$ so that the weighted squared error between the desired and actual accelerations is minimized while accounting for the system's dynamics and safety constraints such as maximum joint torques and velocities. The described impedance task only tracks 6 DoF's however, leaving one redundant DoF of the Franka Emika robot. To resolve this redundancy, one more task which describes the desired acceleration of the first robot joint is added. This so-called posture task with stiffness $k_p$ is given by
+    
+    \begin{equation}
+    \ddot{q}_1 = 2\sqrt{k_p}\dot{q}_1+k_p(q_1-q_{1,t}).
+    \end{equation}
+    An overview of the used control parameters is given in Table xxx.
+   
     \begin{table}[h]
-    \caption{An Example of a Table}
-    \label{table_example}
-    \begin{center}
-    \begin{tabular}{|c||c|}
+    \centering
+    \begin{tabular}{l|l}
     \hline
-    One & Two\\
-    \hline
-    Three & Four\\
-    \hline
+    Parameter & Value                                                \\ \hline
+    $q_{1,t}$     & 0 rad                                              \\
+    $k_1$     & 50 Nm/rad                                            \\
+    $k_2$     & 800 N/m                                              \\
+    $k_p$     & 50 Nm/rad                                            \\
+    $K$       & $\begin{bmatrix} k_1 I &0 \\ 0 & k_2 I\end{bmatrix}$
     \end{tabular}
-    \end{center}
     \end{table}
 
 
-       \begin{figure}[thpb]
-          \centering
-          \framebox{\parbox{3in}{We suggest that you use a text box to insert a graphic (which is ideally a 300 dpi TIFF or EPS file, with all fonts embedded) because, in an document, this method is somewhat more stable than directly inserting a picture.
-    }}
-          %\includegraphics[scale=1.0]{figurefile}
-          \caption{Inductance of oscillation winding on amorphous
-           magnetic core versus DC bias magnetic field}
-          \label{figurelabel}
-       \end{figure}
-       
+    \subsection{Custom end effector}
+    
+% Teleoperation
+    \section{Teleoperation}
 
-    Figure Labels: Use 8 point Times New Roman for Figure labels. Use words rather than symbols or abbreviations when writing Figure axis labels to avoid confusing the reader. As an example, write the quantity ``Magnetization'', or ``Magnetization, M'', not just ``M''. If including units in the label, present them within parentheses. Do not label axes only with units. In the example, write ``Magnetization (A/m)'' or ``Magnetization {A[m(1)]}'', not just ``A/m''. Do not label axes with a ratio of quantities and units. For example, write ``Temperature (K)'', not ``Temperature/K.''
+% Reference spreading controller
+    \section{Reference spreading controller}
+    Reference spreading reduces control effort by cleverly redefining the tracking target. These target definitions differ between the ante, intermediate, and post-impact phase based on separate ante- and post impact references. Impact detection is used to switch between the impact phases at the appropriate time. This section describes the three key components of reference spreading: impact detection, reference formulation, and tracking error definitions.
+
+    \subsection{Impact detection}
+
+    \subsection{Reference formulation}
+    (subscript $r$ indicates a reference, superscripts $a$ and $p$ stand for ante-impact and post-impact phase respectively)
+    \subsection{Target definition}
+    Table \ref{target_defs} shows an overview of the target definitions during the three impact phases. These targets are used for the impedance controller. During the ante- and post impact phase, the target is equal to the respective ante- or post impact reference. For the intermediate phase, multiple options are considered.
+
+    Intermediate phase option 0 is equivelant to the post-impact mode, meaning that the controller effectively jumps from ante- to post impact mode directly.
+
+    In \cite{vansteenRobotControlSimultaneous2021}, it is mentioned that following the post-impact reference does not make sense during the intermediate mode where contact is not yet completed. Instead, the ante-impact reference should be targeted until contact completion, with exception of the reference velocity which is causing the error peak. Setting the target velocity to the current velocity, i.e., $\dot{p}_t=\dot{p}$, causes the velocity tracking error to be zero. This aligns with intermediate option 1.
+
+    Option 2 was inspired by \cite{uitendaalTeachingRobotsInteraction2022} where the velocity target was set to zero following from the observation that damping is beneficial for reducing oscilations. 
+
+    Upon the transition from intermediate to the post-impact phase, intermediate option 1 and 2 will experience a jump in the targets $p_t$ and $F_t$ as the respective ante and post impact references are not guaranteed to coincide. To address this issue, we propose mixing of the ante and post impact reference during the intermediate phase in option 3. Mixing value $\gamma$ equals zero at the start of the intermediate mode, and increments linearly up to 1 at the end of the intermediate phase. Furthermore, opposed to option 2 where the damping target is a velocity of zero, option 3 employs damping with respect to a target velocity equal to the post impact reference.
+
+
+
+
+    \begin{table}[h]
+    \label{target_defs}
+      \caption{Impedance target definition}{Definition of the targets $p_t$, $\dot{p}_t$, and $F_t$ during the different impact phases. Multiple options for the intermediate phase are considered.}
+
+      \centering
+    \begin{tabular}{ccc|cccc|}
+    \cline{4-7}
+                                      &                                    &               & \multicolumn{4}{c|}{Intermediate}                                              \\ \cline{2-7} 
+    \multicolumn{1}{c|}{}             & \multicolumn{1}{c|}{Ante}          & Post          & 0             & 1         & 2             & 3                                  \\ \hline
+    \multicolumn{1}{|c|}{$p_t$}       & \multicolumn{1}{c|}{$p^a_r$}       & $p^p_r$       & $p^p_r$       & $p^a_r$   & $p^a_r$       & $\gamma p^a_r+(1-\gamma)p^p_r$     \\
+    \multicolumn{1}{|c|}{$\dot{p}_t$} & \multicolumn{1}{c|}{$\dot{p}^a_r$} & $\dot{p}^p_r$ & $\dot{p}^p_r$ & $\dot{p}$ & $0$ & $\gamma p + (1-\gamma)\dot{p}^p_r$ \\
+    \multicolumn{1}{|c|}{$F_t$}       & \multicolumn{1}{c|}{$F^a_r$}       & $F^p_r$       & $F^p_r$       & $F^a_r$   & $F^a_r$       & $\gamma F^a_r + (1-\gamma)F^p_r$   \\ \hline
+    \end{tabular}
+    \end{table}
+% % Section
+%     \section{Controller}
+%     Impedance controller passes the following task-space acceleration to the QP scheme:
+%     $$\ddot{p}_t = \ddot{p}_d + \Lambda^{-1}F_{imp}$$
+%     with 
+%     $$F_{imp} =  K(p_d-p_t)+D (\dot{p}_d-\dot{p}_t) +F_{ref} $$
+%     during the ante- or post impact phase. During the intermediate impact phase, this $F_{imp}$ is changed to 
+%     $$F_{imp} =  K(p_d-p_t)+ \gamma [ D (\dot{p}_d-\dot{p}_t) +F_{ref}] $$
+%     with $$\gamma = \frac{ t_{impact}-t_{current}}{T_{intermediate}}.$$ Once $\gamma \leq 1$, intermidate impact mode is switched to post-impact mode is enabled.
+
+%     Task-space intertia matrix $\Lambda$ is found following $$\Lambda = $$
+%     \subsection{Selecting a Template (Heading 2)}
+
+%     First, confirm that you have the correct template for your paper size. This template has been tailored for output on the US-letter paper size. Please do not use it for A4 paper since the margin requirements for A4 papers may be different from Letter paper size.
+
+%     \subsection{Maintaining the Integrity of the Specifications}
+
+%     The template is used to format your paper and style the text. All margins, column widths, line spaces, and text fonts are prescribed; please do not alter them. You may note peculiarities. For example, the head margin in this template measures proportionately more than is customary. This measurement and others are deliberate, using specifications that anticipate your paper as one part of the entire proceedings, and not as an independent document. Please do not revise any of the current designations
 
 % Conclusion
-    \section{CONCLUSIONS}
+    % \section{CONCLUSIONS}
 
-    A conclusion section is not required. Although a conclusion may review the main points of the paper, do not replicate the abstract as the conclusion. A conclusion might elaborate on the importance of the work or suggest applications and extensions. 
+    % A conclusion section is not required. Although a conclusion may review the main points of the paper, do not replicate the abstract as the conclusion. A conclusion might elaborate on the importance of the work or suggest applications and extensions. 
 
-    \addtolength{\textheight}{-12cm}   % This command serves to balance the column lengths
-                                      % on the last page of the document manually. It shortens
-                                      % the textheight of the last page by a suitable amount.
-                                      % This command does not take effect until the next page
-                                      % so it should come on the page before the last. Make
-                                      % sure that you do not shorten the textheight too much.
+    % \addtolength{\textheight}{-12cm}   % This command serves to balance the column lengths
+    %                                   % on the last page of the document manually. It shortens
+    %                                   % the textheight of the last page by a suitable amount.
+    %                                   % This command does not take effect until the next page
+    %                                   % so it should come on the page before the last. Make
+    %                                   % sure that you do not shorten the textheight too much.
 
 % Appendix
-    \section*{APPENDIX}
+    % \section*{APPENDIX}
 
-    Appendixes should appear before the acknowledgment.
+    % Appendixes should appear before the acknowledgment.
 
-    \section*{ACKNOWLEDGMENT}
+    % \section*{ACKNOWLEDGMENT}
 
-    The preferred spelling of the word ``acknowledgment'' in America is without an ``e'' after the ``g''. Avoid the stilted expression, ``One of us (R. B. G.) thanks . . .''  Instead, try ``R. B. G. thanks''. Put sponsor acknowledgments in the unnumbered footnote on the first page.
+    % The preferred spelling of the word ``acknowledgment'' in America is without an ``e'' after the ``g''. Avoid the stilted expression, ``One of us (R. B. G.) thanks . . .''  Instead, try ``R. B. G. thanks''. Put sponsor acknowledgments in the unnumbered footnote on the first page.
 
 % References
-
-    References are important to the reader; therefore, each citation must be complete and correct. If at all possible, references should be commonly available publications.
 
     % \addcontentsline{toc}{chapter}{Bibliography}
     % \printbibliography[title=References]
