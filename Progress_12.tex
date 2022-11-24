@@ -147,7 +147,7 @@
 \begin{document}
 
 % Summary 
-  \section*{Progress meeting 11 | 4 November, 2022}
+  \section*{Progress meeting 12 | 18 November, 2022}
 
 
   \section*{1. Progress}
@@ -156,11 +156,12 @@
 
   \begin{itemize}
       \item Reference spreading controllers:
-        Last time I was having issues with getting the controller to work with a force reference. This was a programming issue which has since been fixed. In II.B of the paper attached at the end of this report, I give the general description of this controller. In IV.B, the control behaviour during ante, intermediate, and post impact phase are further specified. Section V shows the results. Here is are some things I found interesting about the results:
+        Last time I was having issues with getting the controller to work with a force reference. This was a programming issue which has since been fixed. In II.B of the paper attached at the end of this report, I give the general description of this controller. In IV.C, the control behaviour during ante, intermediate, and post impact phase are further specified. Section \ref{sec:results} shows the results. Here is are some things I found interesting about the results:
         \begin{itemize}
           \item Reference spreading reduces the control effort during non-nominal impacts
           \item Without a way to detect when contact is completed, introducing an intermediate impact phase with a predetermined length is not always beneficial.
           \item Disabling damping during the intermediate phase reduces control effort at the cost of worse tracking.
+          \item A newly proposed intermediate control approach effectively blends the ante- and post impact reference for a balance between tracking and control effort.
         \end{itemize}
       \item Writing: So far I have written part of the introduction, an explanation of the impedance QP controller, and various options for the intermediate impact phase controller. The draft paper is attached at the end of this document.
 
@@ -218,9 +219,45 @@
   \end{enumerate}
 % main text
 \newpage
-  \section{Reference spreading results}
-  The impedance controller (section II.B of appendix) was used with various reference spreading configurations (section IV.C of appendix). This setup was evaluated during a stamping task on the panda setup. Figure \ref{fig:my_label} shows the results.
+  \section{Reference spreading results}\label{sec:results}
+  The impedance controller (section II.B of appendix) was used with various reference spreading configurations (section IV.C of appendix). This setup was evaluated during a stamping task on the panda setup. Figure \ref{fig:stamp} shows the results.
 
+  The command force $F_{cmd}$ will be used to evaluate the control effort. Without reference spreading, there is a clear peak in controll effort related to the peak in the velocity tracking error. The option RS inter0 does not suffer from this peak due to switching of the reference. None of the intermediate modes outperform RS inter0 for two reasons. Firstly, there is only one clearly visible impact while the intermediate mode is supposed to address near-simultaneous impacts. Furthermore, it is assumed that the intermediate mode lasts 0.2 seconds, whereas contact is completed sooner than that.
+
+  Similarly, the controller was tested for a grabbing task using two arms. The results for the individual arms is shown in Figure \ref{fig:grab1} and \ref{fig:grab2}. In this scenario, the effect of the intermediate mode is more obvious since there are near-simultaneous impacts: the impact of arm 1, and the impact of arm 2. Intermediate options 1 and 2 experience a peak in the position tracking error which is based on the post-impact reference. This problem is resolved in option 3 thanks to the blending. Intermediate option 3 arguably has the best tradeoff between tracking performance and controll effort moderation.
+
+\begin{figure}[]
+  \centering
+  \begin{adjustwidth}{0pt}{5pt}
+  \centering
+  \includegraphics[width=0.75\textwidth]{Graphics/Stamp result in z-direction_z_1.pdf}\\
+    \includegraphics[width=0.75\textwidth]{Graphics/Stamp result in z-direction_z_2.pdf}
+  \end{adjustwidth}
+  \caption{Results of a stamping experiment. The top figure shows the results for the various approaches, both over the entire experiment, and over a small timeframe around the impact. The bottom figure isolates each approach for additional clarity. The dotted lines indicate the target as described in the control approaches.}
+  \label{fig:stamp}
+  \end{figure}
+
+\begin{figure}[]
+  \centering
+  \begin{adjustwidth}{0pt}{5pt}
+  \centering
+  \includegraphics[width=0.75\textwidth]{Graphics/Boxgrab result in y-direction of arm 1_z_1.pdf}\\
+    \includegraphics[width=0.75\textwidth]{Graphics/Boxgrab result in y-direction of arm 1_z_2.pdf}
+  \end{adjustwidth}
+  \caption{Results of arm 1 in boxgrab experiment. (no RS and RS inter0 show similar results. This might be a result of the nominal impact time being identical to the actual impact time, or an error during data processing. This requires further investigation.)}
+  \label{fig:grab1}
+  \end{figure}
+
+\begin{figure}[]
+  \centering
+  \begin{adjustwidth}{0pt}{5pt}
+  \centering
+  \includegraphics[width=0.75\textwidth]{Graphics/Boxgrab result in y-direction of arm 2_z_1.pdf}\\
+    \includegraphics[width=0.75\textwidth]{Graphics/Boxgrab result in y-direction of arm 2_z_2.pdf}
+  \end{adjustwidth}
+  \caption{Results of arm 2 in boxgrab experiment.(no RS and RS inter0 show similar results. This might be a result of the nominal impact time being identical to the actual impact time, or an error during data processing. This requires further investigation.)}
+  \label{fig:grab2}
+  \end{figure}
 
   \newpage
   % \include{PaperPreliminary.pdf}
