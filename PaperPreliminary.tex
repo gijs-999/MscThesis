@@ -10,7 +10,7 @@
 
     \usepackage[utf8]{inputenc}
     \usepackage[T1]{fontenc}
-
+    \usepackage{xcolor}
     \input{bibconfig.tex}
 
     % The following packages can be found on http:\\www.ctan.org
@@ -73,7 +73,7 @@
 
     An example of automation in logistics can be found in depalletizing, where object are removed from a pallet. Three different depalletizing approaches can be found in industry. 
 
-    A logistical aspect where machines struggle to fully compete with humans is object manipulation. A practical examples of this is depalletizing. While robots are strong and consistent when manipulating objects, humans are versatile and swift. Robots are held back from faster performance because they must often slow down prior to making contact; establishing contact at a high velocity -- an event referred to as an impact -- could cause damage to the robot or its environment. On the contrary, humans intrinsically exploit impacts in the form of grabbing, bouncing and hitting. (give better explanation of depalletizing: manual and automatic approach)
+    A logistical aspect where machines struggle to fully compete with humans is object manipulation. A practical examples of this is depalletizing. While robots are strong and consistent when manipulating objects, humans are versatile and swift. Robots are held back from faster performance because they must often slow down prior to making contact; establishing contact at a high velocity -- an event referred to as an impact -- could cause damage to the robot or its environment. On the contrary, humans intrinsically exploit impacts in the form of grabbing, bouncing and hitting. \textcolor{red}{(give better explanation of depalletizing: manual and automatic approach)}
 
     The field of impact-aware control aims to better equip robots for making contact at high velocities. These impacts are paired with large contact forces that could damage the system. Previous work describes control using the maximum allowable impact velocity that complies with safety constraints such as limits for the contact force~\cite{dehioRobotSafeImpactsSoft2021, dehioDualArmBoxGrabbing2022}. This was combined with a compliant cover for the robot that reduces contact forces at impact, facilitating higher feasible impact velocities. Rather than using a soft cover, compliancy may also be achieved by designing a robot with low inertia and high backdrivability as was done in \cite{songDevelopmentLowInertiaHighStiffness2018}.
 
@@ -81,7 +81,7 @@
 
     The impact-aware control scheme called Reference Spreading \cite{sacconSensitivityAnalysisHybrid2014} addresses error peaking caused by misaligned impacts. It operates on the basis of a tracking error that switches once an impact is detected. This concept is best explained at the hand of Figure xxx. The reference is split at the nominal impact time into an ante- and post impact reference. These references are then extended. Initially, the tracking error is based on the extended ante-impact reference, but this is switched to the post-impact reference once an impact is detected. Evidently, this can reduce the error peaking.
 
-    Reference spreading can also handle simultaneous impacts. \cite{vansteenRobotControlSimultaneous2021} (explanation)
+    Reference spreading can also handle simultaneous impacts. \cite{vansteenRobotControlSimultaneous2021} \textcolor{red}{(explanation)}
 
     By addressing the peaking error, reference spreading facilitates faster object manipulation, making it interesting to industry if its effectivity can be proven in practice. Reference spreading for object manipulation has already been validated in simulations \cite{vansteenRobotControlSimultaneous2021,zwartImpactAwareLearningDemonstration2019}. Experimental validations have been limited to interaction with a fixed environment, however \cite{rijnenReferenceSpreadingTracking2020,uitendaalTeachingRobotsInteraction2022}. The goal of this work is therefore to \textbf{provide a real-world implementation of reference spreading for practical object manipulation tasks.} To translate the results from simulation to reality, the following contributions are made:
 
@@ -94,7 +94,7 @@
 
     \textbf{3. Custom end effector:}
 
-    \textbf{(4. Intermediate impact phase controller:)}
+    \textbf{\textcolor{red}{(4. Intermediate impact phase controller:)}}
 
 % System overview
     \section{System overview}
@@ -104,7 +104,7 @@
 
     The system is limited in certain aspects to make it more representative of affordable setups in industry; in contrast to other object-manipulation works, we do not employ object pose estimation, environment models, or exteroceptive force/torque sensors. 
 
-    (image of robots)
+    \textcolor{red}{(image of robots)}
 
     \subsection{Robot dynamics}
     The robot dynamics can be described as 
@@ -120,13 +120,13 @@
     M\ddot{q}+h=\tau_{cmd}+J^Tf_c.
     \end{equation}
 
+\subsection{Task description}
+Describe the environment, e.g. weigth and dimension of boxes. Then explain what the robot should do with the environment during the experiment: stamp the table, grab boxes, and the possibility for more complex movements such as pivotting a box. (Pivotting a box is not a good usecase for evaluating reference spreading however.)
     \section{Soft end effector design}
-
-    \subsection{Base controller}
-    For articulated robot arms, it is convenient to control the end effector in Cartesian space, rather than directly controlling the robot's joints. In the case of the 7-DoF Franke Emika robot, this leaves one redundant DoF however. Furthermore, despite the desire to control the end effector Carthesian space, 
-
-
-    This can be accomplished with an impedance controller.
+    \section{Trajectory planning using teleoperation}
+    \subsection{VR device}
+    \subsection{Impedance controller}
+    For articulated robot arms, it is convenient to control the end effector in Cartesian space, rather than directly controlling the robot's joints. This can be accomplished with an impedance controller.
 
     The desired impedance behavior is
     \begin{equation} \label{eq:impedance_desired}
@@ -135,7 +135,7 @@
 
     a mass spring damper with with Cartesian-space inertia, damping and stiffness matrices $\Lambda$, $D$ and $K$, and rotation tracking error $e_{rot}$ as defined in Appendix xxx. Desired values are denotes as $d_{(\cdot)}$, e.g., the desired value for $\ddot{p}$ is  $d_{\ddot{p}}$.
 
-    Stiffness $K$ is typically chosen as a diagonal matrix. The damping matrix is determined following $D = 2(\Lambda K)^{\frac{1}{2}}$ which guarantees stable behavior when $K$ and $\Lambda$ are symmetric. Furthermore, For the inertia matrix, two options were considered. Choosing a diagonal matrix $\Lambda$ decouples the accelerations w.r.t. to the position error, resulting in better tracking in free motion. This approach was used in~\cite{vanoorschotDesignNumericalValidation2022}. In this work, however, the task-space inertia is set to match the joint-space inertia following $\Lambda^{-1} = JM^{-1}J^T$, decoupling the contact force w.r.t. the position error for better performance during contact. Further motivation for this decision is provided in Appendix xxx. % = \begin{bmatrix} e_{rotation} & e_{translation} \end{bmatrix}^T $. 
+    Stiffness $K$ is typically chosen as a diagonal matrix. The damping matrix is determined following $D = 2(\Lambda K)^{\frac{1}{2}}$ which guarantees stable behavior when $K$ and $\Lambda$ are symmetric \textcolor{red}{ref?}. Furthermore, For the inertia matrix, two options were considered. Choosing a diagonal matrix $\Lambda$ decouples the accelerations w.r.t. to the position error, resulting in better tracking in free motion. This approach was used in~\cite{vanoorschotDesignNumericalValidation2022}. In this work, however, the task-space inertia is set to match the joint-space inertia following $\Lambda^{-1} = JM^{-1}J^T$, decoupling the contact force w.r.t. the position error for better performance during contact. Further motivation for this decision is provided in Appendix xxx. % = \begin{bmatrix} e_{rotation} & e_{translation} \end{bmatrix}^T $. 
 
     Based on \ref{eq:impedance_desired} we can determine target task-space accelerations, $t_{\dot{\omega}}$ and $t_{\ddot{p}}$, following
     
@@ -190,9 +190,9 @@
 
 
     \begin{table}[h]
-    \label{target_defs}
       \caption{Impedance target definition}{Definition of the targets $p_t$, $\dot{p}_t$, and $F_t$ during the different impact phases. Multiple options for the intermediate phase are considered.}
 
+    \label{target_defs}
       \centering
     \begin{tabular}{ccc|cccc|}
     \cline{4-7}
@@ -203,6 +203,23 @@
     \multicolumn{1}{|c|}{$F_t$}       & \multicolumn{1}{c|}{$F^a_r$}       & $F^p_r$       & $F^p_r$       & $F^a_r$   & $F^a_r$       & $\gamma F^a_r + (1-\gamma)F^p_r$   \\ \hline
     \end{tabular}
     \end{table}
+
+    \section{Results}
+    Show results of stamping and grabbing task between: no RS and RS with various intermediate modes. For the figures, only show the relevant directions, e.g. downward direction for stamping task.
+
+    \section{Conclusion}
+
+    \section{Future work}
+
+    \section{Appendix}
+    \begin{itemize}
+    \item Full manufacturing process of end effector with pictures
+    \item Full technical drawings of end effector
+
+    \item Additional plots for stamping and grabbing experiment (in main text, only show relevant direction, e.g. downward direction for stamping task)
+    \item Definition of the rotation error. Could also be a reference to someone else rather than an eppendix entry.
+
+    \end{itemize}
 % % Section
 %     \section{Controller}
 %     Impedance controller passes the following task-space acceleration to the QP scheme:
