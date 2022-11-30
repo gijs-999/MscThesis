@@ -71,7 +71,9 @@
 
     Automation has historically played a crucial role in the logistics industry. Our current way of living depends on autonomous systems for global transportation and warehousing. The growing labor shortage and increasing demand for online retail motivate further developments in the logistics sector~\cite{dekhneAutomationLogisticsBig2019}.
 
-    A logistical aspect where machines struggle to fully compete with humans is object manipulation. Practical examples of this include order picking or depalletizing. While robots are strong and consistent when manipulating objects, humans are versatile and swift. Robots are held back from faster performance because they must often slow down prior to making contact; establishing contact at a high velocity -- an event referred to as an impact -- could cause damage to the robot or its environment. On the contrary, humans intrinsically exploit impacts in the form of grabbing, bouncing and hitting.
+    An example of automation in logistics can be found in depalletizing, where object are removed from a pallet. Three different depalletizing approaches can be found in industry. 
+
+    A logistical aspect where machines struggle to fully compete with humans is object manipulation. A practical examples of this is depalletizing. While robots are strong and consistent when manipulating objects, humans are versatile and swift. Robots are held back from faster performance because they must often slow down prior to making contact; establishing contact at a high velocity -- an event referred to as an impact -- could cause damage to the robot or its environment. On the contrary, humans intrinsically exploit impacts in the form of grabbing, bouncing and hitting. (give better explanation of depalletizing: manual and automatic approach)
 
     The field of impact-aware control aims to better equip robots for making contact at high velocities. These impacts are paired with large contact forces that could damage the system. Previous work describes control using the maximum allowable impact velocity that complies with safety constraints such as limits for the contact force~\cite{dehioRobotSafeImpactsSoft2021, dehioDualArmBoxGrabbing2022}. This was combined with a compliant cover for the robot that reduces contact forces at impact, facilitating higher feasible impact velocities. Rather than using a soft cover, compliancy may also be achieved by designing a robot with low inertia and high backdrivability as was done in \cite{songDevelopmentLowInertiaHighStiffness2018}.
 
@@ -92,15 +94,17 @@
 
     \textbf{3. Custom end effector:}
 
-    \textbf{4. Intermediate impact phase controller:}
+    \textbf{(4. Intermediate impact phase controller:)}
 
 % System overview
     \section{System overview}
     Considering the goal of evaluating reference spreading in a practical usecase, this work will focus on a dual-arm robotic setup. Having two arms increases the maximum payload. Furthermore, some object manipulation tasks, such as grabbing, require contact from multiple sides. The impact tasks that are considered in this work are stamping, swiping, grabbing, and tilting. 
 
-    The Franka Emika robot \cite{haddadinFrankaEmikaRobot2022} is used for the setup as it is affordable and, more importantly, capable of torque control which is critical for impact-aware manipulation. The robot uses harmonic drives that inherently have poor backdriveability, however, torque control is still possible thanks to the torque sensors. 
+    The Franka Emika robot \cite{haddadinFrankaEmikaRobot2022} is used for the setup as it is affordable and, more importantly, capable of torque control which is critical for impact-aware manipulation. The robot uses harmonic drives that inherently have poor backdriveability, however, torque control is still possible thanks to the torque sensors. Franka Emika provides robot safety limits, such as maximum joint torques or velocities, that should not be exceeded, as this will trigger the 
 
     The system is limited in certain aspects to make it more representative of affordable setups in industry; in contrast to other object-manipulation works, we do not employ object pose estimation, environment models, or exteroceptive force/torque sensors. 
+
+    (image of robots)
 
     \subsection{Robot dynamics}
     The robot dynamics can be described as 
@@ -116,8 +120,13 @@
     M\ddot{q}+h=\tau_{cmd}+J^Tf_c.
     \end{equation}
 
+    \section{Soft end effector design}
+
     \subsection{Base controller}
-    For articulated robot arms, it is convenient to control the pose of the end effector in Cartesian space, rather than controlling the joint angles. This can be accomplished with an impedance controller.
+    For articulated robot arms, it is convenient to control the end effector in Cartesian space, rather than directly controlling the robot's joints. In the case of the 7-DoF Franke Emika robot, this leaves one redundant DoF however. Furthermore, despite the desire to control the end effector Carthesian space, 
+
+
+    This can be accomplished with an impedance controller.
 
     The desired impedance behavior is
     \begin{equation} \label{eq:impedance_desired}
@@ -157,11 +166,6 @@
     \end{tabular}
     \end{table}
 
-
-    \subsection{Custom end effector}
-    
-% Teleoperation
-    \section{Trajectory planning with teleoperation}
 
 % Reference spreading controller
     \section{Reference spreading controller}
