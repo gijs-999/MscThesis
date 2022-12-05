@@ -112,7 +112,7 @@
     M(q)\ddot{q}+h(q,\dot{q})= \tau_{cmd} + \sum_{i=1}^n J_i^Tf_{c,i}
     \end{equation}
     
-    with inertia matrix $M$, joint accelerations $\ddot{q}$, centrifugal, coriolis and gravity terms $h$, and commanded torque $\tau_{cmd}$. The robot has $n$ contacts, and for each contact i there is an external contact wrench $f_{c,i}$. The wrench's contribution on joint level is related through contact jacobian $J_i$ for which it holds that $\begin{bmatrix} \omega & \dot{p} \end{bmatrix}_i^T=J_i\dot{q}$, with $\omega$ the angular velocities of the contact body and $\dot{p}$ the Cartesian velocities of the contact point. 
+    with inertia matrix $M$, joint accelerations $\ddot{q}$, centrifugal, coriolis and gravity terms $h$, and commanded torque $\tau_{cmd}$. The robot has $n$ contacts, and for each contact i there is an external contact wrench $f_{c,i}$. The wrench's contribution on joint level is related through contact jacobian $J_i$ for which it holds that $\begin{bmatrix} \omega & v \end{bmatrix}_i^T=J_i\dot{q}$, with $\omega$ the angular velocities of the contact body and $v$ the Cartesian velocities of the contact point $\dot{p}$. 
 
     For modeling purposes, it is assumed that contact forces only act on the end effector body. These forces are modeled as a single contact wrench $f_c$ acting on control point $p$, which is chosen as the intersection of robot link 5 and 7. This assumption allows for $f_c$ to be estimated using methods described in section xxx. Furthermore, omitting dependency on $q$ and $\dot{q}$ from for brevity results in
 
@@ -130,18 +130,26 @@ Describe the environment, e.g. weigth and dimension of boxes. Then explain what 
 
     The desired impedance behavior is
     \begin{equation} \label{eq:impedance_desired}
-     \Lambda  \begin{bmatrix} d_{\dot{\omega}} - \dot{\omega}   \\ d_{\ddot{p}} - \ddot{p}  \end{bmatrix} + D \begin{bmatrix}d_\omega - {\omega} \\ d_{\dot{p}} - \dot{p} \end{bmatrix}  + K \begin{bmatrix} e_{rot} \\d_p - {p}  \end{bmatrix} = d_{f_c} -f_c:
+     \Lambda  \begin{bmatrix} \alpha_d - \alpha   \\ a_d - a  \end{bmatrix} + D \begin{bmatrix} \omega_d - {\omega} \\ v_d - v \end{bmatrix}  + K \begin{bmatrix} e_{rot} \\p_d - {p}  \end{bmatrix} = {f_{c,d}} -f_c:
      \end{equation} 
 
-    a mass spring damper with with Cartesian-space inertia, damping and stiffness matrices $\Lambda$, $D$ and $K$, and rotation tracking error $e_{rot}$ as defined in Appendix xxx. Desired values are denotes as $d_{(\cdot)}$, e.g., the desired value for $\ddot{p}$ is  $d_{\ddot{p}}$.
+    a mass spring damper with with Cartesian-space inertia, damping and stiffness matrices $\Lambda$, $D$ and $K$, and rotation tracking error $e_{rot}$ as defined in Appendix xxx. Subscript $d$ denotes the desired value. Furthermore $\alpha$ and $a$ refer to the acceleration in rotation and translation respectively.
 
     Stiffness $K$ is typically chosen as a diagonal matrix. The damping matrix is determined following $D = 2(\Lambda K)^{\frac{1}{2}}$ which guarantees stable behavior when $K$ and $\Lambda$ are symmetric \textcolor{red}{ref?}. Furthermore, For the inertia matrix, two options were considered. Choosing a diagonal matrix $\Lambda$ decouples the accelerations w.r.t. to the position error, resulting in better tracking in free motion. This approach was used in~\cite{vanoorschotDesignNumericalValidation2022}. In this work, however, the task-space inertia is set to match the joint-space inertia following $\Lambda^{-1} = JM^{-1}J^T$, decoupling the contact force w.r.t. the position error for better performance during contact. Further motivation for this decision is provided in Appendix xxx. % = \begin{bmatrix} e_{rotation} & e_{translation} \end{bmatrix}^T $. 
 
-    Based on \ref{eq:impedance_desired} we can determine target task-space accelerations, $t_{\dot{\omega}}$ and $t_{\ddot{p}}$, following
+    Based on \ref{eq:impedance_desired} we can determine target task-space accelerations, $\alpha_t$ and $a_t$, following
     
-    \begin{align} \begin{bmatrix}t_{\dot{\omega}}\\ t_{\ddot{p}}\end{bmatrix} &= \begin{bmatrix} {\dot{\omega}}\\{\ddot{p}}\end{bmatrix}+\Lambda^{-1} f_c\\
-     &=     \begin{bmatrix} d_{\dot{\omega}}    \\ d_{\ddot{p}}  \end{bmatrix} +\Lambda^{-1} \left ( D \begin{bmatrix}d_\omega - {\omega} \\ d_{\dot{p}} - \dot{p} \end{bmatrix}  + K \begin{bmatrix} e_{rot} \\d_p - {p}  \end{bmatrix}- d_{f_c} \right ).
-    \end{align}
+    % \begin{equation} 
+$$
+    \begin{bmatrix} \alpha_{t} \\ a_{t} \end{bmatrix} 
+    = 
+    \begin{bmatrix} \alpha \\ a \end{bmatrix} +
+    \Lambda^{-1} f_{c}
+$$
+    $$
+     =     \begin{bmatrix} \alpha_d    \\ a_d  \end{bmatrix} +\Lambda^{-1} \left ( D \begin{bmatrix} \omega_d - {\omega} \\ v_d - v \end{bmatrix}  + K \begin{bmatrix} e_{rot} \\p_d - {p}  \end{bmatrix}- f_{c,d} \right ).
+$$
+    % \end{equation}
 
     Note the exclusion of $f_c$ as the exerted contact wrench is not modeled and therefore unknown. Quadratic Programming is used to find $\tau_{cmd}$ so that the weighted squared error between the desired and actual accelerations is minimized while accounting for the system's dynamics (x) and safety constraints (x). 
 
@@ -199,7 +207,7 @@ Describe the environment, e.g. weigth and dimension of boxes. Then explain what 
                                       &                                    &               & \multicolumn{4}{c|}{Intermediate}                                              \\ \cline{2-7} 
     \multicolumn{1}{c|}{}             & \multicolumn{1}{c|}{Ante}          & Post          & 0             & 1         & 2             & 3                                  \\ \hline
     \multicolumn{1}{|c|}{$p_t$}       & \multicolumn{1}{c|}{$p^a_r$}       & $p^p_r$       & $p^p_r$       & $p^a_r$   & $p^a_r$       & $\gamma p^a_r+(1-\gamma)p^p_r$     \\
-    \multicolumn{1}{|c|}{$\dot{p}_t$} & \multicolumn{1}{c|}{$\dot{p}^a_r$} & $\dot{p}^p_r$ & $\dot{p}^p_r$ & $\dot{p}$ & $0$ & $\gamma p + (1-\gamma)\dot{p}^p_r$ \\
+    \multicolumn{1}{|c|}{$v_t$} & \multicolumn{1}{c|}{$v^a_r$} & $\dot{p}^p_r$ & $v^p_r$ & $v$ & $0$ & $\gamma v + (1-\gamma)v^p_r$ \\
     \multicolumn{1}{|c|}{$F_t$}       & \multicolumn{1}{c|}{$F^a_r$}       & $F^p_r$       & $F^p_r$       & $F^a_r$   & $F^a_r$       & $\gamma F^a_r + (1-\gamma)F^p_r$   \\ \hline
     \end{tabular}
     \end{table}

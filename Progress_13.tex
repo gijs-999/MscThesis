@@ -1,0 +1,302 @@
+\documentclass[11pt]{report}
+% PACKAGES
+  \usepackage[a4paper,left=28mm,right=28mm,top=30mm,bottom=30mm]{geometry}
+  \usepackage{graphicx,epstopdf}      % Used to import external graphics (figures)
+  \usepackage{hyperref}       % Used for referring to links inside and outside the document
+  \usepackage[table]{xcolor}  % To include colors 
+  \usepackage{amsmath}        % For most of the math symbols and environments (such as \begin{align})
+  \usepackage{amssymb}        % For using symbols in the document
+  \usepackage{float}          % Arranging of figures on the page
+  \usepackage[bf]{caption}    % Arranging the captions in floating environments [bf] makes the Figures bold
+  \usepackage{subcaption}     % To arrange captions of subfigures
+  \usepackage{booktabs}       % For standard tabular tables, with rules
+  \usepackage{tabularx}       % For clean tables such as in the Nomenclature
+  \usepackage{fancyhdr}       % Fancy headers
+  \usepackage[colorinlistoftodos]{todonotes}      % To create todo notes
+  \usepackage[nottoc,notlot,notlof]{tocbibind}    % Add bibliography to content
+  \usepackage{bm}             % Make bold symbols
+  \usepackage{lipsum}
+  \usepackage{parskip}
+  \usepackage[export]{adjustbox}
+  \usepackage{changepage}
+  \usepackage{pdfpages}
+% LAY-OUT
+  % \usepackage{pdfpages}
+
+  % \usepackage{pdflscape}
+
+   \renewcommand\thesection{\arabic{section}}
+
+  % \usepackage[mathletters]{ucs}
+  % \usepackage[utf8x]{inputenc}
+  %Bibliography for references, with reference style options
+  \usepackage[
+  backend=biber,
+  bibstyle=ieee,
+  citestyle=numeric-comp,
+  dashed=false,
+  url = false,
+  maxnames=8,
+  maxcitenames=2,
+  mincitenames=1,
+  sorting=none,
+  isbn = false,
+  doi = false
+  ]{biblatex}
+  \addbibresource{references.bib}
+
+  %Set the page style
+  \pagestyle{fancy}
+  \fancyhead[L]{\ifodd\value{page} \slshape\nouppercase{\rightmark} \else \fi}
+  \fancyhead[R]{\ifodd\value{page} \else \slshape\nouppercase{\leftmark} \fi}
+  \chead{ }
+  \lfoot{}
+  \rfoot{}
+  \cfoot{\small\thepage}
+
+
+  %Give colors to links/refs etc
+  \hypersetup{colorlinks, linkcolor={blue!0!black}, 
+                          citecolor={blue!70!black}, 
+                           urlcolor={blue!80!}} 
+                       
+  %% Set up numbering and spacing
+  \numberwithin{equation}{section}        %Number the equations per section
+  \numberwithin{figure}{section}          %Number the figures per section
+  \numberwithin{table}{section}           %Number the tables per section
+  \captionsetup[table]{skip=1pt}          %Skip 1 pt after a table
+  \captionsetup[figure]{skip=3.5pt}       %Skip 4 pt after a figure
+  \setcounter{secnumdepth}{3}             %Count up to the subsubsection 
+  \setcounter{topnumber}{1}               %Number of floats at top of a page (default is 2)
+
+  %%%%% proof/theorem/definition boxes
+
+  \usepackage{cleveref}
+  \usepackage[most]{tcolorbox}
+  \newtcbtheorem{Theorem}{Theorem}{
+    enhanced,
+    sharp corners,
+    attach boxed title to top left={
+      yshifttext=-1mm
+    },
+    colback=white,
+    colframe=blue!75!black,
+    fonttitle=\bfseries,
+    boxed title style={
+      sharp corners,
+      size=small,
+      colback=blue!75!black,
+      colframe=blue!75!black,
+    } 
+  }{thm}
+
+  \newtcbtheorem{Definition}{Definition}{
+    enhanced,
+    sharp corners,
+    attach boxed title to top left={
+      yshifttext=-1mm
+    },
+    colback=white,
+    colframe=blue!25,
+    fonttitle=\bfseries,
+    coltitle=black,
+    boxed title style={
+      sharp corners,
+      size=small,
+      colback=blue!25,
+      colframe=blue!25,
+    } 
+  }{def}
+
+  \newtcbtheorem[no counter]{Proof}{Proof}{
+    enhanced,
+    sharp corners,
+    attach boxed title to top left={
+      yshifttext=-1mm
+    },
+    colback=white,
+    colframe=blue!25,
+    fonttitle=\bfseries,
+    coltitle=black,
+    boxed title style={
+      sharp corners,
+      size=small,
+      colback=blue!25,
+      colframe=blue!25,
+    } 
+  }{prf}
+% DEFINITIONS
+  %% Titlepage definitions
+  \newcommand{\deltitle}{Impact-Aware Control for a Dual-Arm Setup}      %Your project title
+  \newcommand{\StudentName}{Gijs van den Brandt}  %Student name
+  \newcommand{\StudentID}{1257110}                    %Your student number
+  % \newcommand{\DCcode}{2021.109}                      %Get your DC code from the D&C secretariat
+
+  %% Operators
+  \DeclareMathOperator\sign{sgn}                      %Sign function
+  \DeclareMathOperator\diag{diag}                     %Diagonal operator
+  \DeclareMathOperator\imag{Imag}                     %Imaginary part of complex variable
+  \DeclareMathOperator\real{Real}                     %Real part of complex variable
+  \DeclareMathOperator*{\argmin}{\arg\!\min}          %Argmin operator
+  \newcommand{\norm}[1]{\left\lVert#1\right\rVert}    %Norm operator
+
+  %% Variable definition
+  \newcommand{\R}{\mathbb{R}}                         % Set of real numbers
+  \newcommand{\C}{\mathbb{C}}                         % Set of complex numbers
+
+\begin{document}
+
+% Summary 
+  \section*{Progress meeting 13 | 6 December, 2022}
+
+
+  \section*{1. Progress}
+  \begin{itemize}
+  \item \textbf{Controller finishing touches:}
+      \begin{itemize}
+        \item The controller now uses feedforward, which improves tracking prior to the impact. To achieve this, the impedance force during the demonstration is recorded and applied as feedforward during the replay.
+        \item The impedance stiffness during replay was increased from 800 N/m to 1500 N/m. The stiffness during demonstration remains at 800 N/m. Combined with the feedforward, this causes the position tracking during the stamping task to decrease from approx. 20 mm to 3 mm prior to impact.
+        \item Previously, reference spreading was only applied for the translational DoFs. I have now extended this so that reference spreading also works for the rotational DoFs.
+
+      \end{itemize}
+      
+      \item \textbf{Data collection:} The stamping and grabbing experiment I showed in the previous progress report were repeated with the modified controller. Based on your feedback, this time I did stamping experiments where the impact surface was lowered, raised, or kept equal. Furthermore I recorded videos of the experiments.
+
+      During the previous progress meeting, the results caused a bit of confusion; the surface was raised, yet the impact occured later due to poor tracking. Feedforward and higher gains solved this issue. The conclusions that can be drawn from the experiments did not change with respect to last time. The videos and figures are available at \url{https://surfdrive.surf.nl/files/index.php/s/3FMyF4ZadnimjsO}. In section \ref{sec:2}, two selected figures are shown: one for the stamping experiment where the surface was raised, and for box grabbing.
+
+      \item \textbf{Writing:} Jari advised me to focus on determining the structure of my paper, rather than jumping straight into writing the individual sections. Section \ref{sec:1} shows what I have in mind. The paper in its current state is attached at the end of this document. 
+
+     
+  \end{itemize}
+
+  \section*{2. Agenda}
+  During the meeting, I would like to discuss the following points:
+  
+      \begin{itemize}
+        \item In my opinion, the new experimental results demonstrate the value of reference spreading. Nevertheless, I think that reference spreading would be more effective with faster impact detection, which I think could be achieved by a momentum observer with different tuning from the tuning provided by franka emika. Do you think that I should spend time on a momentum observer, or spend more time on other changes to the controller? Or do you think that the results are already sufficiently convincing?
+  \item I would like to go over the paper structure I have in mind. Jari has already given me some advice regarding what a paper should look like, however we came to the agreement that my final report should be somewhere between a paper and a thesis (to give an example, the custom end effector design wouldn't be considered a scientific contribution in an academic paper, whereas in a thesis report I believe it shouldn't be hidden in an appendix). I am curious to hear your opninion on this.
+  \item I have made a planning for when I want to the send the report to you for feedback, and when I hope to receive the feedback. I want to ask if this planning seems reasonable to you.
+  \end{itemize}
+
+  \section*{3. Next steps}
+
+  \begin{itemize}
+      \item Make figures: error peaking, reference spreading, VR control loop with human, photo of setup, ...
+      \item Document math: reference extending (also for rotations), impact detection, ...
+      \item Finish draft of paper for feedback. Some major components that should still be written: teleoperation, custom end effector, experimental results, conclusion.
+      \item (Low priority for now: document controller code so that it may be used by others in the future)
+  \end{itemize}
+
+  \section*{4. Long-term planning}
+  Shown below is the current long-term planning for the project phase. It includes deadline, such as when I intend to submit the report for feedback. I received a deadline extension, meaning that the final deadline is the 5th of March. I plan for a defence around the 20th of February.
+
+  \begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth, trim={0.87cm 6.5cm 4.5cm 1.5cm},clip]{Graphics/planning v2.pdf}
+
+  \label{fig:my_label}
+  \end{figure}
+
+  \begin{enumerate}
+  \item[1a] \textbf{Translating dual-arm teleoperation to the physical setup.} The existing implementation in simulation already uses the mc\_rtc interface, meaning that the switch to reality shouldn't pose an issue. Nevertheless, this step also involves getting familiar with the software, which increases the anticipated time for this step.
+  \item[1b] \textbf{Extracting references from the demonstration data.} The demonstrated trajectories should be split into ante-impact and post-impact sections, and extended to facilitate RS. Furthermore multiple measurements should be used to fit ProMPs, after which a reference can be generated. It is also key to identify which data should be learned from the demonstration. This is not limited to choosing between a force or position reference, but can also consists of learning properties of the environment, e.g. friction cones or box inertia, that are crucial to a dual-arm box grabbing scenario.
+  \item[1c] \textbf{Integrating impact detection and contact monitoring in mc\_rtc.} The majority of the impact detector's complexity resides in the momentum observer; however, Franka Emika's software already has an integrated momentum observer. This still leaves tuning of the impact detecting algorithms which might be time consuming. Furthermore an analysis comparing the available methods could be worthwhile. Factors which determines the effectivity of the impact detection algorithm include speed of detection, as well as reliability, i.e. the rate of false positives. The addition of objects that cause unexpected impacts is not considered a part of the research scope.
+  \item[1d] \textbf{Configuring QP controllers for the ante-impact, intermediate, and post-impact phase.} For each of the phases, it is important to address the redundancy in the arms' degrees of freedom. After that, control for the ante-impact phase should be trivial. For the intermediate phase, it is expected that ante-impact reference tracking without velocity feedback should be applicable on a dual-arm robot, though this might prove to be false, in which case other methods should be investigated. During post-impact control, the challenge will be maintaining non-slip contact with the box. It is difficult to say how well the results from simulations can be repeated with torque control, where the state of the box can not be sensed to be used in the QP controller.
+   \item[2a] \textbf{Passive impact absorption:} A soft cover for the end effector will be designed. Such a cover can be connected to the Panda by connecting bolts to the so-called flange interface. A mold will be created using 3D printing to allow for casting of various silicone soft covers. Design parameters -- i.e. material properties (controlled by choosing different kinds of silicone) and soft cover thickness -- will be analyzed experimentally. A systematic comparison between various designs will require an experiment plan including a realistic testing scenario. Evaluation of performance can be based on the oscillatory response in position and force after establishing contact. Furthermore multiple scenarios with various box surface properties and robot poses should be considered.
+  
+  \item[2b] \textbf{Contact monitoring:} When investigating contact monitoring, two approaches can be taken: either using proprioceptive or exteroceptive sensors. A possible improvement for contact monitoring using proprioceptive sensors could be to wait a fixed time starting from the last detected impact, rather than waiting a fixed time from the first impact. As for exteroceptive sensors, they can be a hurdle for large-scale commercial applications as they are not integrated in the robot. However, if a soft cover is to be mounted to the end effector, including tactile sensors for impact and contact monitoring becomes more feasible. Practical questions such as which tactile sensor to use and how to integrate it could be addressed, though this is not absolutely necessary for completing the research goals, and therefore has a low priority.
+  \end{enumerate}
+% main text
+\newpage
+  \section{Paper structure}\label{sec:1}
+  Below is the structure of the paper that I have in mind. The current stat of the paper is attached at the end of this document.
+
+   Title: Experimental Validation of Reference Spreading for Robotic Manipulation of Unmodeled Objects
+\begin{enumerate}
+      \item Introduction
+
+      \item System overview
+\begin{enumerate}
+      \item  Robot dynamics
+      \item Task description (box weight/dimension, explanation of stamping and grabbing)
+ \end{enumerate}
+      \item Soft end effector design
+
+      \item Trajectory planning using teleoperation
+\begin{enumerate}
+     \item  VR device
+
+       \item  Impedance controller
+\end{enumerate}
+      \item Reference spreading
+\begin{enumerate}
+       \item  Impact detection
+
+      \item  Reference formulation
+
+       \item  Switching controller
+\end{enumerate}
+     \item  Experimental results
+\begin{enumerate}
+       \item  Stamping task
+
+      \item  Grabbing task
+
+       \item  (don’t think I should do more complicated tasks as they require more explanation while not showing additional benefits of RS)
+      \end{enumerate}
+     \item   Conclusion
+    
+     \item  Future work
+
+
+\end{enumerate}
+Appendix:
+
+A.  End effector design: complete technical drawing and manufacturing process
+
+B.  Experimental results: Can’t show all the data in the main text (probably only one or two direction, e.g. downward direction for stamping). Include full results in appendix.
+
+C.  Math regarding rotation matrices and quaternions: definition of rotation error, interpolation of quaternions, integrating angular velocity for extending the rotation reference.
+
+  \newpage
+
+  \section{Selected figures of experimental results}\label{sec:2}
+  (see following pages)
+\begin{figure}[]
+  \centering
+  \begin{adjustwidth}{0pt}{5pt}
+  \centering
+  \includegraphics[width=0.75\textwidth]{Graphics/Stamp result in z-direction raised surface.pdf}\\
+    \includegraphics[width=0.75\textwidth]{Graphics/Stamp result in z-direction raised surface_.pdf}
+  \end{adjustwidth}
+  \caption{Results of a stamping experiment. The top figure shows the results for the various approaches, both over the entire experiment, and over a small timeframe around the impact. The bottom figure isolates each approach for additional clarity. The dotted lines indicate the target as described in the control approaches.}
+  \label{fig:stamp}
+  \end{figure}
+
+\begin{figure}[]
+  \centering
+  \begin{adjustwidth}{0pt}{5pt}
+  \centering
+  \includegraphics[width=0.75\textwidth]{Graphics/Grab result in y-direction_ Panda1.pdf}\\
+    \includegraphics[width=0.75\textwidth]{Graphics/Grab result in y-direction_ Panda1_.pdf}
+  \end{adjustwidth}
+  \caption{Results of arm 1 in boxgrab experiment.}
+  \label{fig:grab1}
+  \end{figure}
+
+
+
+  \newpage
+  % \include{PaperPreliminary.pdf}
+  \includepdf[pages=-]{PaperPreliminary.pdf}
+% BIBLIOGRAPHY
+
+  % \newpage
+  % \addcontentsline{toc}{chapter}{References}
+  % \printbibliography[title=References]
+
+  % \newpage
+  % \thispagestyle{empty} \ \newpage
+
+
+\end{document}
