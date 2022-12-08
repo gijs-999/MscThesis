@@ -55,7 +55,7 @@
     \begin{document}
 
 
-  \includepdf{Thesis.pdf}
+  % \includepdf{Thesis.pdf}
     \maketitle
     \thispagestyle{empty}
     \pagestyle{empty}
@@ -63,7 +63,9 @@
 % Abstract
     \begin{abstract}
 
-    This electronic document is a ``live'' template. The various components of your paper [title, text, heads, etc.] are already defined on the style sheet, as illustrated by the portions given in this document.
+    Exploiting impacts can speed up robotic object manipulation.  However,  when using traditional control approaches, impacts are paired with peaks in joint torques and contact forces that may damage the robot or its environment. Reference spreading (RS) is an impact-aware control approach that addresses these peaks without significantly compromising on tracking performance. Numerical studies have validated the benefits of RS controllers for object manipulation tasks, but these conrollers relied on knowledge regarding the robot's contact state and accurate object models --  information that is not easily available in a real-life setup. 
+
+    This work describes an impact detection algorithm and a model-free trajectory planner using teleoperation. Furthermore, a soft end effector is designed. These components are implemented on a dual-arm robotic setup to evaluate RS in a usecase that is relevant to industry, namely grabbing a box. Experiments show that RS reduces control effort -- and therefore joint torques and contact forces -- without inhibiting tracking performance. This means that impacts with higher velocities become feasible, and subsequently that RS can contribute to faster object manipulation.
 
     \end{abstract}
 
@@ -99,11 +101,23 @@
 
 % Background
     \section{Background}
-    \subsection{Compliant robots}
+    \subsection{Robots suitable for impacts}
+    \textcolor{red}{goal: Explain why franka emika robot is suitable for impacts, explain torque control, show custom end effectors from literature, motivate design of a new end effector}\\
+    Traditionally, robots are designed to be stiff. 
+    % Impedance describes the relation between a motion enforced on a body and the resulting force. An example of a motion being enforced is a collision; two bodies cannot pass through each other, and this is governed by a contact force whose magnitude depends on the impedance of the bodies. To prevent high contact forces that might lead to damage during impacts, robots should have a low impedance, i.e., they should be compliant, have little internal friction, and have a low inertia.
+
+    % The research robot LIMS2 meets the requirements for a low-impedance robot. Rather than using gearboxes, it uses a pulley system. Eliminating gearboxes reduces the main source of internal friction for traditional robots. Furthermore, the pulley system allows for the bulk off the mass -- namely the motors -- to be moved closer to the robot base, reducing the inertia. The absence of friction makes the robot backdrivable, meaning that the compliance can be controlled by the motors.
+
+
+
+
+
+    
     \subsection{Quadratic programing control}
+     \textcolor{red}{goal: motivate QP control, formulate carthesian impedance task, posture task, and list safety constraints }\\
     \subsection{Reference spreading}
     \subsection{Impact detection}
-    \section{Tracjectory planning}
+    \section{Trajectory planning}
 
 % Methods
     \section{Methods}
