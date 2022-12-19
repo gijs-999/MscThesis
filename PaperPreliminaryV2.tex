@@ -65,7 +65,7 @@
 
     Exploiting impacts can speed up robotic object manipulation.  However,  when using traditional control approaches, impacts are paired with peaks in joint torques and contact forces that may damage the robot or its environment. Reference spreading (RS) is an impact-aware control approach that addresses these peaks without significantly compromising on tracking performance. Numerical studies have validated the benefits of RS controllers for object manipulation tasks, but these controllers rely on knowledge regarding the robot's contact state and accurate object models --  information that is not easily available in a real-life setup. 
 
-    This work describes an impact detection algorithm and a model-free trajectory planner using teleoperation. Furthermore, a soft end effector is designed. These components are implemented on a dual-arm robotic setup to evaluate RS in a usecase that is relevant to industry, namely grabbing a box. Experiments show that RS reduces control effort -- and therefore joint torques and contact forces -- without inhibiting tracking performance. Consequently, impacts at higher velocities become feasible, meaning that RS can contribute to faster object manipulation.
+    To facilitate experimental validation of RS for object manipulation, this work describes an impact detection algorithm and a model-free trajectory planner using teleoperation. Furthermore, a soft end effector is designed. These components are implemented on a dual-arm robotic setup to evaluate RS in a usecase that is relevant to industry, namely grabbing a box. Experiments show that RS reduces control effort -- and therefore joint torques and contact forces -- without inhibiting tracking performance. Consequently, impacts at higher velocities become feasible, meaning that RS can contribute to faster object manipulation.
 
     \end{abstract}
 
@@ -119,12 +119,13 @@
      \textcolor{red}{goal: motivate QP control, formulate carthesian impedance task, posture task, and list dynamics of motion and safety constraints }\\
      Controlling a robot for object manipulation involves, e.g., adressing redundancy and acounting for limits of the robot, while simultaneously applying a contact force and moving to a position. These objectives often clash with each other, meaning that they cannot always be perfectly satisfied. It is possible to distinguish between constraints -- control objectives that must always be satisfied -- and tasks -- objectives that should be performed as good as possible but not necesarily perfectly.
 
-     Quadratic Programming (QP) relies on this philosophy. In a QP scheme, constraints and task errors are defined as a linear function of optimization parameters. It then becomes possible to efficiently find the parameters that minmize the task errors while adhering to the constraints. Furthermore, priority between the tasks can be achieved by assigning weights. In the context of a robot where the optimization parameters are, for example, joint accelerations $\ddot{q}$, the optimization problem can be formulated as
+     Quadratic Programming (QP) relies on this philosophy. In a QP scheme, constraints and task errors are defined as a linear function of optimization parameters. Then it becomes possible to efficiently find the parameters that minmize the task errors while adhering to the constraints. Furthermore, priority between the tasks can be achieved by assigning weights. 
+     In the context of a robot where the optimization parameters are, for example, joint accelerations $\ddot{q}$, the optimization problem can be formulated as
 
      \begin{equation}
      \min_{\ddot{q}\in\chi}\sum_i w_i \left \| e_i(\ddot{q}) \right \|^2
      \end{equation}
-     where $w_i$ and $e_i$ are the respective weight and error of the task with index $i$, and $\chi$ is the feasible space where all constraints are met.
+     where $w_i$ and $e_i$ are the respective weight and error of the task with index $i$, and $\chi$ is the feasible space where all constraints are met. The remainder of this section describes constraints and tasks that are relevant for object manipulation.
 
      \textbf{Torque constraint:} To protect the robot, we can define a constraint that limits the control torque $\tau$ within a safe range, i.e.,
      \begin{equation}
@@ -184,14 +185,27 @@
 
 
     \subsection{Reference spreading}
-     \textcolor{red}{goal: explain error peaking, explain  }\\
+     \textcolor{red}{goal: explain error peaking, explain reference spreading, formulize reference extending, explain intermediate mode }\\
+    \textbf{Error peaking:} Many controllers, such as the impedance-based controller described in the previous section, rely on a velocity reference for tracking. When a trajectory contains impacts, both the measured and reference velocity signals contain jumps. Due to, e.g., imperfect tracking or uncertainty regarding the position of the contact surface, the measured and reference jumps can be misaligned in time. This causes the tracking error to peak: a phenomenon that will be refered to as error peaking. This is shown in Figure xxx. The peak is paired with high control efforts that could damage the robot and its environment, while not necesarily contributing to better tracking. To prevent large peaks in the tracking error, robots often avoid high-velocity impacts.
+
+    \textbf{Switching reference:} Reference spreading (RS) enables high-velocity impacts by adressing error peaking. RS distinguishes between a reference before and after the impact. While neither of references contains velocity jumps, switching from the ante- to the post-impact reference upon impact results in a velocity jump that is aligned with the the velocity jump of the actual system. Figure xxx shows that this reduces the peak in the tracking error, meaning that faster impact become feasible.
+
+   \textbf{Near-simultaneous impacts:} Sometimes, impacts are paired with multiple velocity jumps.  Corners of a contact surface may impact at diverging intervals in uncertain order during what is called near-simultaneous impacts. This is visualised in Figure xxx. Between the moment of impact and contact completion -- an interval refered to as the intermediate (impact) phase -- both the ante- and post impact reference would result in error peaking. Literature describes intermediate phase controller to deal with this: during the intermediate phase, velocity feedback may be disabled \cite{vansteenRobotControlSimultaneous2021}, or the velocity reference may be set to zero \cite{uitendaalTeachingRobotsInteraction2022}. 
+
+   \textbf{Reference extending:} RS relies on the formulation of  ante- and post impact references. These can be generated by splitting a reference at the nominal impact time, and then extending beyond the nominal impact time. One extending approach is maintaining constant 
     \subsection{Impact detection}
-    \section{Trajectory planning}
+    \textcolor{red}{goal: explain error peaking (including near-simultaneous impacts), explain reference spreading, formulize reference extending, explain intermediate mode}\\
+    \subsection{Trajectory planning}
 
 % Methods
     \section{Methods}
     \subsection{Soft end effector}
     \subsection{Trajectory planning via teleoperation}
+    Due to the absence of an environment model, we cannot replicate the trajectory planning methods used in simulation as described in Section xxx. Alternatively, a human could demonstrate tasks through teleoperation. Applying this methodology to contact tasks featuring impacts introduces some challenges, however.
+
+    \subsection{Constraining control effort}
+    Section xxx explained how velocity jumps result in control effort that may damage the robot or the environment. Even though there are no impact-driven velocity jumps in a reference extracted from a non-haptic VR device, jumps in velocity measurements may still cause excessive control effort. 
+
     \subsection{Reference spreading formulation}
 
 % Experimental validation
@@ -210,7 +224,6 @@
 \subsection{Rotation mathematics}
 \subsection{End effector design}
 \subsection{Supplementary experimental results}
-hoi
 
 \end{document}
 
