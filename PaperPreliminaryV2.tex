@@ -115,7 +115,7 @@
 
 
     
-    \subsection{Quadratic programing control}
+    \subsection{Quadratic programing control} \label{sec:QP}
      \textcolor{red}{goal: motivate QP control, formulate carthesian impedance task, posture task, and list dynamics of motion and safety constraints }\\
      Controlling a robot for object manipulation involves, e.g., adressing redundancy and acounting for limits of the robot, while simultaneously applying a contact force and moving to a position. These objectives often clash with each other, meaning that they cannot always be perfectly satisfied. It is possible to distinguish between constraints -- control objectives that must always be satisfied -- and tasks -- objectives that should be performed as good as possible but not necesarily perfectly.
 
@@ -146,7 +146,7 @@
 
      An impedance controller aims to achieve the closed loop behaviour
          \begin{equation} \label{eq:impedance_desired}
-     \Lambda  \begin{bmatrix} \alpha   \\ a  \end{bmatrix} + D \begin{bmatrix} \omega - {\omega_d} \\ v - v_d \end{bmatrix}  + K \begin{bmatrix} -e_{rot} \\p - {p_d}  \end{bmatrix} = f -f_d
+     \Lambda  \begin{bmatrix} \alpha   \\ a  \end{bmatrix} + D \begin{bmatrix} \omega - {\omega_d} \\ v - v_d \end{bmatrix}  + K \begin{bmatrix} -e_{rot} \\p - {p_d}  \end{bmatrix} = f_d
      \end{equation} 
 
     with Carthesian-space inertia, damping and stiffness matrices $\Lambda$, $D$ and $K$, and rotation tracking error $e_{rot}$ as defined in Appendix xxx. Subscript $d$ denotes the desired value, and $f$ represents the external wrench.
@@ -156,7 +156,7 @@
     We can define the target task-space accelerations $\alpha_t$ and $a_t$ based on \eqref{eq:impedance_desired}:
     \begin{align} \label{eq:imptask1}
     \begin{bmatrix} \alpha_{t} \\ a_{t} \end{bmatrix} 
-   =    \Lambda^{-1} \left ( D \begin{bmatrix} \omega_d - {\omega} \\ v_d - v \end{bmatrix}  + K \begin{bmatrix} e_{rot} \\p_d - {p}  \end{bmatrix} + f - f_{d} \right )
+   =    \Lambda^{-1} \left ( D \begin{bmatrix} \omega_d - {\omega} \\ v_d - v \end{bmatrix}  + K \begin{bmatrix} e_{rot} \\p_d - {p}  \end{bmatrix} +  f_{d} \right )
      \end{align}
     The desired behaviour of \eqref{eq:impedance_desired} is achieved as the robot's acceleration approaches the target acceleration, i.e., we want to minimize the impedance task error $e_{imp}$ given by
         \begin{equation} \label{eq:e_imp_} e_{imp} = 
@@ -201,7 +201,9 @@
     \section{Methods}
     \subsection{Soft end effector}
     \subsection{Trajectory planning via teleoperation}
-    Due to the absence of an environment model, we cannot replicate the trajectory planning methods used in simulation as described in Section xxx. Alternatively, a human could demonstrate tasks through teleoperation. Applying this methodology to contact tasks featuring impacts introduces some challenges, however.
+    Due to the absence of an environment model, we cannot replicate the trajectory planning methods used in simulation as described in Section xxx. Alternatively, a human could demonstrate tasks through teleoperation. The trajectory tracked by the robot during demonstration could then be used as reference as it is guaranteed to be coherent with the robot's dynamics. This section frormulates a teleoperation controller and how it can be used to plan trajectories.
+
+    The teleoperation controller is based on the HTV Vive VR handheld devices. These VR devices provide rotation $R_{VR}$, angular velocity $\omega_{VR}$, position $p_{VR}$, and velocity $v_{VR}$. These signals will be used with the QP framework described in Section \ref{sec:QP} will be used for the teleoperation controller. Substituing the desired values into \ref{eq:e_imp}
 
     \subsection{Constraining control effort}
     Section xxx explained how velocity jumps result in control effort that may damage the robot or the environment. Even though there are no impact-driven velocity jumps in a reference extracted from a non-haptic VR device, jumps in velocity measurements may still cause excessive control effort. 
