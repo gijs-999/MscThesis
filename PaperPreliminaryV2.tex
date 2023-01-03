@@ -20,7 +20,7 @@
     \usepackage{mathptmx} % assumes new font selection scheme installed
     \usepackage{amsmath} % assumes amsmath package installed
     \usepackage{amssymb}  % assumes amsmath package installed
-
+\usepackage{lipsum}
     \title{\LARGE \bf
     Experimental Validation of Reference Spreading by Robotic Manipulation of Unmodeled Objects
     }
@@ -186,7 +186,7 @@
 
     \subsection{Reference spreading}
      \textcolor{red}{goal: explain error peaking, explain reference spreading, formulize reference extending, explain intermediate mode }\\
-    \textbf{Error peaking:} Many controllers, such as the impedance-based controller described in the previous section, rely on a velocity reference for tracking. When a trajectory contains impacts, both the measured and reference velocity signals contain jumps. Due to, e.g., imperfect tracking or uncertainty regarding the position of the contact surface, the measured and reference jumps can be misaligned in time. This causes the tracking error to peak: a phenomenon that will be refered to as error peaking. This is shown in Figure xxx. The peak is paired with high control efforts that could damage the robot and its environment, while not necesarily contributing to better tracking. To prevent large peaks in the tracking error, robots often avoid high-velocity impacts.
+    \textbf{Error peaking:} Many controllers, such as the impedance-based controller described in the previous section, rely on a velocity reference for tracking. When a trajectory contains impacts, both the measured and reference velocity signals contain jumps. Due to, e.g., imperfect tracking or uncertainty regarding the position of the contact surface, the measured and reference jumps can be misaligned in time. This causes the tracking error to peak -- a phenomenon that will be refered to as error peaking. This is shown in Figure xxx. The peak is paired with high control efforts that could damage the robot and its environment, while not necesarily contributing to better tracking. To prevent large peaks in the tracking error, robots often avoid high-velocity impacts.
 
     \textbf{Switching reference:} Reference spreading (RS) enables high-velocity impacts by adressing error peaking. RS distinguishes between a reference before and after the impact. While neither of references contains velocity jumps, switching from the ante- to the post-impact reference upon impact results in a velocity jump that is aligned with the the velocity jump of the actual system. Figure xxx shows that this reduces the peak in the tracking error, meaning that faster impact become feasible.
 
@@ -200,13 +200,24 @@
 % Methods
     \section{Methods}
     \subsection{Soft end effector}
+     \begin{figure*}[h]
+      \centering
+
+    \includegraphics[trim={1cm 23.3cm 5cm 1cm}, clip]{Graphics/qp.pdf}
+    \includegraphics[trim={1cm 17.8cm 5cm 6.5cm}, clip]{Graphics/qp.pdf}
+      \caption{Inductance of oscillation winding on amorphous
+       magnetic core versus DC bias magnetic field}
+      \label{figurelabel}
+   \end{figure*}
+
+\lipsum[3-10]
     \subsection{Trajectory planning via teleoperation}
     Due to the absence of an environment model, we cannot replicate the trajectory planning methods used in simulation as described in Section xxx. Alternatively, a human could demonstrate tasks through teleoperation. The trajectory tracked by the robot during demonstration could then be used as reference as it is guaranteed to be coherent with the robot's dynamics. This section frormulates a teleoperation controller and how it can be used to plan trajectories.
 
     The teleoperation controller is based on the HTV Vive VR handheld devices. These VR devices provide rotation $R_{VR}$, angular velocity $\omega_{VR}$, position $p_{VR}$, and velocity $v_{VR}$. These signals will be used with the QP framework described in Section \ref{sec:QP} will be used for the teleoperation controller. Substituing the desired values into \ref{eq:e_imp}
 
-    \subsection{Constraining control effort}
-    Section xxx explained how velocity jumps result in control effort that may damage the robot or the environment. Even though there are no impact-driven velocity jumps in a reference extracted from a non-haptic VR device, jumps in velocity measurements may still cause excessive control effort. 
+
+
 
     \subsection{Reference spreading formulation}
 

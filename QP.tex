@@ -172,12 +172,12 @@ K \quad \text{Impedance stiffness matrix} \\
 \varphi  \quad \text{Time of impact}\\
 \gamma  \quad \text{Normalized time since impact}\\
 T  \quad \text{Duration of interim impact mode}\\
-m \quad \text{Intermediate impact mode selector (0: no RS, 1: Jari, 2: Sven, 3: mixing)}\\\\
+m \quad \text{Intermediate impact mode selector (0: no RS, 1: Jari, 2: Sven, 3: mixing)}\\
+j \quad \text{Number of jumps that have occured}\\\\
 \text{\textbf{Sub- and superscripts}}\\
-(\cdot)^{a} \quad \text{Ante-impact signal}\\
-(\cdot)^{p} \quad \text{Post-impact signal}\\
 (\cdot)_{dem} \quad \text{Signals from VR device during recording}\\
 (\cdot)_{rec} \;\quad \text{Signals measured from robot or calculated during recording}\\
+(\cdot)_{ext} \;\quad \text{Signals resulting from the splitting and extending of the recorded signal}\\
 (\cdot)_{ref} \;\quad \text{Signals determined using RS scheme}\\
 (\cdot)_{rep} \;\quad \text{Signals measured from robot or calculated during replay}\\
 \end{array}$
@@ -207,52 +207,55 @@ $\begin{array}{l}
 \ddot{q}_{rep} = \min\limits_{\ddot{q}}\left \|  \begin{bmatrix}
 \alpha(\ddot{q})\\ 
 a(\ddot{q})
-\end{bmatrix} - \Lambda^{-1}(f_{rep}+f_{rec}) \right \| + \left \|\ddot{q}_1-(\beta_{rep}+\beta_{rec}) \right \|\\\\
+\end{bmatrix} - \Lambda^{-1}(f_{rep}+f_{ref}) \right \| + \left \|\ddot{q}_1-(\beta_{rep}+\beta_{ref}) \right \|\\\\
 f_{rep} =2(\Lambda K_{rep})^{\frac{1}{2}} \begin{bmatrix}
-\omega_{rec} - \omega_{rep}
+\omega_{ref} - \omega_{rep}
 \\ 
-v_{rec}-v_{rep}
+v_{ref}-v_{rep}
 \end{bmatrix} + K_{rep} \begin{bmatrix}
-R_{rep}(\log({R_{rep}}^TR_{rec}))^{\vee }\\ 
-p_{rec}-p_{rep}
+R_{rep}(\log({R_{rep}}^TR_{ref}))^{\vee }\\ 
+p_{ref}-p_{rep}
 \end{bmatrix}\\\\
-\beta_{rep} = 2\sqrt{k_{rep}}\left [ \dot{q}_{1,rec}-\dot{q}_{1,rep}  \right ] + k_{rep}\left [ q_{1,rec}-q_{1,rep}  \right ]
+\beta_{rep} = 2\sqrt{k_{rep}}\left [ \dot{q}_{1,ref}-\dot{q}_{1,rep}  \right ] + k_{rep}\left [ q_{1,ref}-q_{1,rep}  \right ]
 \end{array}$
 
 \includegraphics[trim={1cm 17.8cm 5cm 6.5cm}, clip]{Graphics/qp.pdf}
 \\
 \section*{Reference Extending}
 $\begin{array}{l}
-REhold(x,t,\varphi) 
-% = \begin{bmatrix} x^a(t) & x^p(t) \end{bmatrix} 
+S_{hold}(x,\varphi,t,j) 
 = \begin{cases} 
-\begin{bmatrix} x(t) & x(\varphi) \end{bmatrix},& \text{if } t\leq \varphi\\
-\begin{bmatrix} x(\varphi) & x(t) \end{bmatrix},& \text{if } t> \varphi\\
-\end{cases}\\\\\\
-
-REintergrate(x,y,t,\varphi) 
-% = \begin{bmatrix} y^a(t) & y^p(t) \end{bmatrix} 
-= \begin{cases} 
-\begin{bmatrix} x(t) & x(\varphi) \end{bmatrix}+\begin{bmatrix}0 & y(\varphi)(t-\varphi) \end{bmatrix},& \text{if } t\leq \varphi\\
-\begin{bmatrix} x(\varphi) & x(t) \end{bmatrix}+\begin{bmatrix}y(\varphi)(t-\varphi) & 0  \end{bmatrix},& \text{if } t> \varphi\\
-\end{cases}\\\\
-
-REintergrateRot(R,\omega,t,\varphi) 
-% = \begin{bmatrix} y^a(t) & y^p(t) \end{bmatrix} 
-= \begin{cases} 
-\begin{bmatrix} R(t) & R(\varphi)e^{\omega(\varphi)(t-\varphi)} \end{bmatrix},& \text{if } t\leq  \varphi\\
-\begin{bmatrix} R(\varphi)e^{\omega(\varphi)(t-\varphi)} & R(t) \end{bmatrix},& \text{if } t> \varphi\\
+x(\varphi_j),& \text{if } t< \varphi_j\\
+x(\varphi_j),& \text{if } t> \varphi_{j+1} \\
+x(t) ,& \text{otherwise}\\
 \end{cases}\\
 \\
 
-\begin{bmatrix} R_{rec}^a(t) & R_{rec}^p(t) \end{bmatrix} 
-= REintergrateRot(R_{rec},\omega_{rec},t,\varphi_{rec}) \\
+S_{integ}(x,y,\varphi,t,j) 
+= \begin{cases} 
+x(\varphi_j)+y(\varphi_j)(t-\varphi_j),& \text{if } t< \varphi_j\\
+x(\varphi_{j+1})+y(\varphi_{j+1})(t-\varphi_{j+1}),& \text{if } t> \varphi_{j+1}  \\
+x(t) ,& \text{otherwise}\\
+\end{cases}\\
 \\
 
+S_{rot}(R,\omega,\varphi,t,j) 
+= \begin{cases} 
+R(\varphi_j)e^{\omega(\varphi_j)(t-\varphi_j)},& \text{if } t< \varphi_j\\
+R(\varphi_{j+1})e^{\omega(\varphi_{j+1})(t-\varphi_{j+1})},& \text{if } t> \varphi_{j+1}\\
+R(t) ,& \text{otherwise}\\
+\end{cases}\\
+\\
+
+\\
+
+R_{ext,j}(t) = S_{rot}(R_{rec},\omega_{rec},\varphi_{rec},t,j)\\
+
+\\
 \begin{bmatrix} 
-p_{rec}^a(t) & p_{rec}^p(t) \\
- q_{1,rec}^a(t) & q_{1,rec}^p(t)
-\end{bmatrix} = REintergrate(
+p_{ext,j}(t)  \\
+ q_{1,ext,j}(t) 
+\end{bmatrix} = S_{integ} \left (
 \begin{bmatrix} 
 p_{rec}\\
  q_{1,rec}
@@ -261,93 +264,93 @@ p_{rec}\\
 v_{rec}\\
  \dot{q}_{1,rec}
 \end{bmatrix} 
-,t,\varphi_{rec})\\
+,\varphi_{rec},t,j \right )\\
 \\
 
+\\
 \begin{bmatrix} 
-\omega_{rec}^a(t)&\omega_{rec}^p(t)\\
-v_{rec}^a(t)&v_{rec}^p(t)\\
- \dot{q}_{1,rec}^a(t)&\dot{q}_{1,rec}^p(t)\\
- f_{rec}^a(t)&f_rec^p(t)\\
- \beta_{rec}^a(t)&\beta_{rec}^p(t)
-\end{bmatrix} = REhold(
+\omega_{rec}(t)\\
+v_{ext,j}(t)\\
+ \dot{q}_{1,ext,j}(t)\\
+ f_{ext,j}(t)\\
+ \beta_{ext,j}(t)
+\end{bmatrix} = S_{hold} \left (
 \begin{bmatrix} 
 \omega_{rec}\\
 v_{rec}\\
  \dot{q}_{1,rec}\\
- f_{ref}\\
+ f_{rec}\\
  \beta_{rec}
-\end{bmatrix} 
-,t,\varphi_{rec})\\
+\end{bmatrix}
+,\varphi_{rec},t,j \right )\\
+\\
+
 \end{array}$
 
 \section*{Reference Switching}
 
 $\begin{array}{l}
-\gamma_{rep} = \frac{t-\varphi_{rep}}{T}\\
+\gamma = \frac{t-\varphi_{rep,j}}{T}\\
 
-RS(x^a(t),x^p(t),t,\gamma) = \begin{cases} 
-x^a,& \text{if } \gamma \leq 0\\
-x^p,& \text{if } \gamma \geq 1\\
+U_{jump}(x,x_{ext},\gamma,m,j) = \begin{cases} 
+x_{ext,j},& \text{if } \gamma \geq 1\\
 
-x^p,& \text{if } (0< \gamma < 1)\wedge(m=0)\\ 
-x^a,& \text{if } (0< \gamma < 1)\wedge(m=1)\\ 
-x^a,& \text{if } (0< \gamma < 1)\wedge(m=2)\\ 
-(1-\gamma)x^a+ \gamma x^p,& \text{if } (0< \gamma < 1)\wedge(m=3)\\ \end{cases}\\\\
+x_{ext,j},& \text{if } (\gamma < 1)\wedge(m=0)\\ 
+x,& \text{if } (\gamma < 1)\wedge(m=1)\\ 
+0,& \text{if } (\gamma < 1)\wedge(m=2)\\ 
+\gamma x_{ext,j} ,& \text{if } (\gamma < 1)\wedge(m=3)\\ \end{cases}\\\\
+\\
+U_{cont}(x_{ext},\gamma,m,j) = \begin{cases} 
+x_{ext,j},& \text{if } \gamma \geq 1\\
 
-
-
-RSvel(x,x^a(t),x^p(t),t,\gamma) = \begin{cases} 
-x^a,& \text{if } \gamma \leq 0\\
-x^p,& \text{if } \gamma \geq 1\\
-
-x^p,& \text{if } (0< \gamma < 1)\wedge(m=0)\\ 
-x,& \text{if } (0< \gamma < 1)\wedge(m=1)\\ 
-0,& \text{if } (0< \gamma < 1)\wedge(m=2)\\ 
-\gamma x^p,& \text{if } (0< \gamma < 1)\wedge(m=3)\\ 
-\end{cases}\\\\
-
-RScont(x^a(t),x^p(t),t,\gamma) = RSvel(0,x^a(t),x^p(t),t,\gamma) + \begin{cases} 
-x^a,& \text{if } (0< \gamma < 1)\wedge(m=1)\\ 
-x^a,& \text{if } (0< \gamma < 1)\wedge(m=2)\\ 
-(1-\gamma)x^a,& \text{if } (0< \gamma < 1)\wedge(m=3)\\
-0 ,& \text{otherwise}\\ \end{cases}\\\\
-
-f_{ref} = RS(f_{rec}^a, f_{rec}^p,t,\gamma_{rep})\\
-\beta_{ref} = RS(\beta_{rec}^a, \beta_{rec}^p,t,\gamma_{rep})\\
-p_{ref} = RS(p_{rec}^a, p_{rec}^p,t,\gamma_{rep})\\
-q_{1,ref} = RS(q_{1,rec}^a, q_{1,rec}^p,t,\gamma_{rep})\\
+x_{ext,j},& \text{if } (\gamma < 1)\wedge(m=0)\\ 
+x_{ext,j-1},& \text{if } (\gamma < 1)\wedge(m=1)\\ 
+x_{ext,j-1},& \text{if } (\gamma < 1)\wedge(m=2)\\ 
+\gamma x_{ext,j}+ (1-\gamma)x_{ext,j-1} ,& \text{if } (\gamma < 1)\wedge(m=3)\\ \end{cases}\\\\\\
 
 
-\dot{q}_{1,ref} = RSvel(\dot{q}_{1,rep},\dot{q}_{1,rec}^a, \dot{q}_{1,rec}^p,t,\gamma_{rep})\\
 
-v_{ref} = RSvel(v_{rep},v_{rec}^a, v_{rec}^p,t,\gamma_{rep})\\
-\alpha_{ref} = RSvel(\alpha_{rep},\alpha_{rec}^a, \alpha_{rec}^p,t,\gamma_{rep})\\
-R_{ref} = 
-\begin{cases} 
-R^a_{rec},& \text{if } \gamma \leq 0\\
-R_{rec}^p,& \text{if } \gamma \geq 1\\
+U_{rot}(R_{ext},\gamma,m,j) = \begin{cases} 
+R_{ext,j},& \text{if } \gamma \geq 1\\
 
-R_{rec}^p,& \text{if } (0< \gamma < 1)\wedge(m=0)\\ 
-R_{rep},& \text{if } (0< \gamma < 1)\wedge(m=1)\\ 
-I,& \text{if } (0< \gamma < 1)\wedge(m=2)\\ 
-R_{rep}(R_{rep}^TR_{rec})^\gamma,& \text{if } (0< \gamma < 1)\wedge(m=3)\text{Klopt deze interpolatie???}\\ 
-\end{cases}\\\\
-% definition
-% - ff: f, beta
-% - velocities: dq_1, v, alpha, 
-% - positions: p, q_1
-% - rotations: R
+R_{ext,j},& \text{if } (\gamma < 1)\wedge(m=0)\\ 
+R_{ext,j-1},& \text{if } (\gamma < 1)\wedge(m=1)\\ 
+R_{ext,j-1},& \text{if } (\gamma < 1)\wedge(m=2)\\ 
+R_{ext,j-1}(R^T_{ext,j-1}R_{ext,j})^\gamma,& \text{if } (\gamma < 1)\wedge(m=3)\\ \end{cases}\\\\
 
-% RE:
-% - ff, velocities: hold
-% - position: integrate
-% - rotations: :)
+\\
 
-% Rs:
-% - ff, positions: default
-% - velocities: hold
-% - rotations: :)
+R_{ref} = U_{rot}(R_{ext},\gamma,m,j)\\
+
+\\
+\begin{bmatrix} 
+p_{ref}  \\
+ q_{1,ref} \\
+ \dot{q}_{1,ref}\\
+ f_{ref}\\
+ \beta_{ref}
+\end{bmatrix} = U_{cont} \left (
+\begin{bmatrix} 
+p_{ext}\\
+ q_{1,ext}\\
+ \dot{q}_{1,ext}\\
+ f_{ext}\\
+ \beta_{ext}
+\end{bmatrix} 
+,\gamma, m , j \right )\\
+\\
+
+\\
+\begin{bmatrix} 
+\omega_{ref}\\
+v_{ref}\\
+\end{bmatrix} = U_{jump} \left (
+\begin{bmatrix} 
+\omega_{ext,j}(t)\\
+v_{ext,j}(t)\\
+\end{bmatrix}
+,\varphi_{rec},\gamma,m,j \right )\\
+\\
 
 \end{array}$
 
