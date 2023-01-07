@@ -21,7 +21,6 @@
     \usepackage{mathptmx} % assumes new font selection scheme installed
     \usepackage{amsmath} % assumes amsmath package installed
     \usepackage{amssymb}  % assumes amsmath package installed
-\usepackage{lipsum}
     \title{\LARGE \bf
     Experimental Validation of Reference Spreading by Robotic Manipulation of Unmodeled Objects
     }
@@ -51,7 +50,11 @@
     %         {\tt\small p.misra at ieee.org}}%
     }
 
-  \usepackage{pdfpages}
+    \usepackage{pdfpages}
+    % \usepackage{dblfloatfix} % To enable figures at the bottom of page
+    \usepackage{lipsum}
+    % \usepackage{float}
+    \usepackage{stfloats}
 
     \begin{document}
 
@@ -117,39 +120,37 @@
 
     
     \subsection{Quadratic programing control} \label{sec:QP}
-     \textcolor{red}{goal: motivate QP control, formulate Cartesian ee task, posture task, and list dynamics of motion and safety constraints }\\
-     Controlling a robot for object manipulation involves, e.g., adressing redundancy and acounting for limits of the robot, while simultaneously applying a contact force and moving to a position. These objectives often clash with each other, meaning that they cannot always be perfectly satisfied. It is possible to distinguish between constraints -- control objectives that must always be satisfied -- and tasks -- objectives that should be performed optimally but not necesarily perfectly.
+    %\textcolor{red}{goal: motivate QP control, formulate Cartesian ee task, posture task, and list dynamics of motion and safety constraints }\\
+    Controlling a robot for object manipulation involves, e.g., adressing redundancy and acounting for limits of the robot, while simultaneously applying a contact force and moving to a position. These objectives often clash with each other, meaning that they cannot always be perfectly satisfied. It is possible to distinguish between constraints -- control objectives that must always be satisfied -- and tasks -- objectives that should be performed optimally but not necesarily perfectly.
 
-     Quadratic Programming (QP) relies on this philosophy. In a QP scheme, constraints and task errors are defined as a linear function of optimization parameters. It then becomes possible to efficiently find the parameters that minimize the task errors while adhering to the constraints. Furthermore, priority between the tasks can be enforced by assigning weights. 
-     
-     In the context of a robot where the optimization parameters are, for example, joint accelerations $\ddot{q}$, the optimization problem can be formulated as
+    Quadratic Programming (QP) relies on this philosophy. In a QP scheme, constraints and task errors are defined as a linear function of optimization parameters. It then becomes possible to efficiently find the parameters that minimize the task errors while adhering to the constraints. Furthermore, priority between the tasks can be enforced by assigning weights. 
 
-     \begin{equation}
-     \min_{\ddot{q}\in\chi}\sum_i w_i \left \| e_i(\ddot{q}) \right \|^2
-     \end{equation}
-     where $w_i$ and $e_i$ are the respective weight and error of the task with index $i$, and $\chi$ is the feasible space where all constraints are met. The remainder of this section describes constraints and tasks that are relevant for object manipulation.
+    In the context of a robot where the optimization parameters are, for example, joint accelerations $\ddot{q}$, the optimization problem can be formulated as
 
-     \textbf{Torque constraint:} To protect the robot, we can define a constraint that limits the control torque $\tau$ within a safe range, i.e.,
-     \begin{equation}
-       \tau_{min} \leq\tau \leq  \tau_{max} 
-     \end{equation}
-     This constraint must be formulated as a function of optimization parameter $\ddot q$ to be compatible with the QP scheme. The relation between $\ddot{q}$ and $\tau$ is given by the equations of motion
-     \begin{equation}
-        M\ddot{q}+h=\tau
-     \end{equation}    
-     with inertia matrix $M$ and vector of gravity, centrifugal, and Coriolis terms $h$. Subsequently, the torque constraint formulated as linear function of the optimization parameter becomes
+    \begin{equation}
+    \min_{\ddot{q}\in\chi}\sum_i w_i \left \| e_i(\ddot{q}) \right \|^2
+    \end{equation}
+    where $w_i$ and $e_i$ are the respective weight and error of the task with index $i$, and $\chi$ is the feasible space where all constraints are met. The remainder of this section describes constraints and tasks that are relevant for object manipulation.
+
+    \textbf{Torque constraint:} To protect the robot, we can define a constraint that limits the control torque $\tau$ within a safe range, i.e.,
+    \begin{equation}
+    \tau_{min} \leq\tau \leq  \tau_{max} 
+    \end{equation}
+    This constraint must be formulated as a function of optimization parameter $\ddot q$ to be compatible with the QP scheme. The relation between $\ddot{q}$ and $\tau$ is given by the equations of motion
+    \begin{equation}
+    M\ddot{q}+h=\tau
+    \end{equation}    
+    with inertia matrix $M$ and vector of gravity, centrifugal, and Coriolis terms $h$. Subsequently, the torque constraint formulated as linear function of the optimization parameter becomes
     \begin{equation}\label{eq:eom}
-     \tau_{min} \leq M\ddot{q}+h \leq  \tau_{max}.       
-     \end{equation} 
+    \tau_{min} \leq M\ddot{q}+h \leq  \tau_{max}.       
+    \end{equation} 
 
     \textbf{End effector task:}
     QP control allows for a trajectory to not only be defined in the joint space, but also in the Cartesian end effector space. This is useful whern the position vector $p$ and rotation matrix $R$ should be controlled. Velocity and accelerations are represented by $\omega$ and $\alpha$ for rotations, and by $v$ and $a$ for translations. We can then define an end effector task, based on the orientation and position task in \cite{cisnerosRobustHumanoidControl2018}, following 
-
       \begin{align} \label{eq:eetask} e_{ee}(q) = 
     \begin{bmatrix} \alpha(\ddot{q}) \\ a(\ddot{q}) \end{bmatrix}
     - D \begin{bmatrix} \omega_d - {\omega} \\ v_d - v \end{bmatrix}  - K \begin{bmatrix}(\log({R}_dR^T))^{\vee }  \\p_d - {p}  \end{bmatrix}
         \end{align} with diagonal damping and stiffness matrices $D$ and $K$. The subscript $d$ indicates a desired value. Furthermore, $\alpha$ and $a$ are related to $\ddot{q}$ with the Jacobian $J$ and its derivative $\dot{J}$, i.e.,
-
     \begin{equation}\label{eq:jacobian}
     \begin{bmatrix} \omega \\ v \end{bmatrix}=J\dot{q},
     \quad 
@@ -159,20 +160,19 @@
     It is important to be aware of the closed-loop dynamics of the end effector task when there are unmodeled contact forces at play. For simplicity, assume a 6-DoF system where the impedance task is tracked perfectly, i.e., $e_{ee}(q)=0$. The control torque is then found using the modeled EoM \eqref{eq:eom} with $\ddot{q}$ from \eqref{eq:eetask} and \eqref{eq:jacobian}:
      \begin{align} \label{eq:mEoM} MJ^{-1}
     \left(   
-D \begin{bmatrix} \omega_d - {}{\omega} \\ v_d - v \end{bmatrix}  + K \begin{bmatrix}(\log({R}_dR^T))^{\vee }  \\p_d - {p}  \end{bmatrix}
--\dot{J}\dot{q}\right)+h =\tau.
-      \end{align} In reality, the EoM includes a contact wrench $\mathcal{F}$, i.e., 
-     \begin{align} \label{eq:aEoM} MJ^{-1} \left(
+    D \begin{bmatrix} \omega_d - {}{\omega} \\ v_d - v \end{bmatrix}  + K \begin{bmatrix}(\log({R}_dR^T))^{\vee }  \\p_d - {p}  \end{bmatrix} -\dot{J}\dot{q}\right)+h =\tau.
+    \end{align} In reality, the EoM includes a contact wrench $\mathcal{F}$, i.e., 
+    \begin{align} \label{eq:aEoM} MJ^{-1} \left(
     \begin{bmatrix} \alpha \\ a \end{bmatrix}-\dot{J}\dot{q} \right ) +h -J^T\mathcal{F}=\tau.
-      \end{align}
-      Substituting \eqref{eq:mEoM} into \eqref{eq:aEoM} gives the closed-loop dynamics
- \begin{align} \label{eq:ee_closeloop} 
+    \end{align}
+    Substituting \eqref{eq:mEoM} into \eqref{eq:aEoM} gives the closed-loop dynamics
+    \begin{align} \label{eq:ee_closeloop} 
     \begin{bmatrix} \alpha \\ a \end{bmatrix}- D \begin{bmatrix} \omega_d - {}{\omega} \\ v_d - v \end{bmatrix}  - K \begin{bmatrix}(\log({R}_dR^T))^{\vee }  \\p_d - {p}  \end{bmatrix}=JM^{-1}J^T\mathcal{F}.
-      \end{align}
-      Note that the rotation and position errors are related to the contact wrench through the matrix $K^{-1}JM^{-1}J^T$.
+    \end{align}
+    Note that the rotation and position errors are related to the contact wrench through the matrix $K^{-1}JM^{-1}J^T$.
 
     \textbf{Posture task:} In object manipulation, the 6-DoF end effector pose is of particular interest. Robot arms that mimic human anatomy often posses 7 DoF's, however. This results in a DoF redundancy, which should be addressed for a well-posed QP scheme. The additional DoF can be imposed by a so-called posture task described in \cite{cisnerosRobustHumanoidControl2018}. This task attaches a critically-damped spring and damper with stiffness $k$ to a virtual unit mass. The results in a target joint acceleration $\beta$, i.e.,
- \begin{equation} \label{eq:beta} \beta_n = 2\sqrt{k}(\dot{q}_{n,d}-\dot{q}) +k(q_{n,d}-q_n)
+    \begin{equation} \label{eq:beta} \beta_n = 2\sqrt{k}(\dot{q}_{n,d}-\dot{q}) +k(q_{n,d}-q_n)
     \end{equation}
     with joint index $n$. The task error is then given by
     \begin{equation} \label{eq:e_pos} e_{pos}(\ddot{q}) = 
@@ -181,50 +181,37 @@ D \begin{bmatrix} \omega_d - {}{\omega} \\ v_d - v \end{bmatrix}  + K \begin{bma
 
 
     \subsection{Reference spreading}
-     \textcolor{red}{goal: explain error peaking, explain reference spreading, formulize reference extending, explain intermediate mode }\\
-   Many controllers rely on a velocity reference for tracking. When a trajectory contains impacts, both the measured and reference velocity signals contain jumps. Due to, e.g., imperfect tracking or uncertainty regarding the position of the contact surface, the measured and reference jumps can be misaligned in time. This causes the tracking error to peak -- a phenomenon that will be refered to as error peaking. An example of error peaking is shown in Figure xxx. The peak is paired with high control efforts that could damage the robot and its environment, while not necesarily contributing to better tracking. To prevent large peaks in the tracking error, robots often avoid high-velocity impacts.
+    %\textcolor{red}{goal: explain error peaking, explain reference spreading, formulize reference extending, explain intermediate mode }\\
+    Many controllers rely on a velocity reference for tracking. When a trajectory contains impacts, both the measured and reference velocity signals contain jumps. Due to, e.g., imperfect tracking or uncertainty regarding the position of the contact surface, the measured and reference jumps can be misaligned in time. This causes the tracking error to peak -- a phenomenon that will be refered to as error peaking. An example of error peaking is shown in Figure xxx. The peak is paired with high control efforts that could damage the robot and its environment, while not necesarily contributing to better tracking. To prevent large peaks in the tracking error, robots often avoid high-velocity impacts.
 
     \textbf{Switching reference:} Reference spreading (RS) enables high-velocity impacts by adressing error peaking. RS distinguishes between a reference before and after the impact. By switching between the ante and post impact reference upon impact detection, it is possible to create a jump in the velocity reference that aligns with the velocity jump of the actual system. Figure xxx shows that this reduces the peak in the tracking error, meaning that excessive control efforts are avoided and that faster impact become feasible.
 
-   \textbf{Near-simultaneous impacts:} Sometimes, impacts are paired with multiple velocity jumps.  Corners of a contact surface may impact at diverging intervals in uncertain order during what is called near-simultaneous impacts. This is visualised in Figure x. Similarly, in the context of dual-arm box grabbing, one arm may establish contact before the other.
+    \textbf{Near-simultaneous impacts:} Sometimes, impacts are paired with multiple velocity jumps.  Corners of a contact surface may impact at diverging intervals in uncertain order during what is called near-simultaneous impacts. This is visualised in Figure x. Similarly, in the context of dual-arm box grabbing, one arm may establish contact before the other.
 
-   Between the moment of impact and contact completion -- an interval refered to as the interim (impact) phase -- both the ante- and post impact reference would result in error peaking. Literature describes interim phase controllers to deal with this: during the interim phase, velocity feedback may be disabled \cite{vansteenRobotControlSimultaneous2021}, or the velocity reference may be set to zero \cite{uitendaalTeachingRobotsInteraction2022}. 
+    Between the moment of impact and contact completion -- an interval refered to as the interim (impact) phase -- both the ante- and post impact reference would result in error peaking. Literature describes interim phase controllers to deal with this: during the interim phase, velocity feedback may be disabled \cite{vansteenRobotControlSimultaneous2021}, or the velocity reference may be set to zero \cite{uitendaalTeachingRobotsInteraction2022}. 
 
-   \textbf{Reference extending:} RS relies on the formulation of  ante- and post impact references. These can be generated by splitting a reference at the nominal impact time, and then extending beyond the nominal impact time. One extending approach is maintaining constant 
+    \textbf{Reference extending:} RS relies on the formulation of  ante- and post impact references. These can be generated by splitting a reference at the nominal impact time, and then extending beyond the nominal impact time. One extending approach is maintaining constant 
     \subsection{Impact detection}
-    \textcolor{red}{goal: explain error peaking (including near-simultaneous impacts), explain reference spreading, formulize reference extending, explain intermediate mode}\\
+    \textcolor{red}{goal: explain that RS requires impact detection, how simulational implementations ``cheat'', and describe impact detection using the momentum observer or acceleratione estimations}\\
     \subsection{Trajectory planning}
 
 % Methods
     \section{Methods}
     \subsection{Soft end effector}
-     \begin{figure*}[h]
-      \centering
-
-    \includegraphics[trim={1cm 23.3cm 5cm 1cm}, clip]{Graphics/qp.pdf}
-    \includegraphics[trim={1cm 17.8cm 5cm 6.5cm}, clip]{Graphics/qp.pdf}
-      \caption{Inductance of oscillation winding on amorphous
-       magnetic core versus DC bias magnetic field}
-      \label{figurelabel}
-   \end{figure*}
 
     \subsection{Trajectory planning via teleoperation}
-    Due to the absence of an environment model, the velocity jump during an impact cannot be determined analytically, and hence it is not possible to replicate the trajectory planning methods used in simulation as described in Section xxx. Instead, we employ teleoperation so that a human operator may demonstrate a task. Low control gains are used during teleoperation so that impacts do not cause an excessive control effort. The humans in the loop allows for the executation of complex manipulation tasks, despite the poor control gains. Furthermore, the resulting trajectory is guaranteed to be coherant with the dynamics of the robots, and can be used as a reference for an RS controller.
+    Due to the absence of an environment model, the velocity jump during an impact cannot be determined analytically, and hence it is not possible to replicate the trajectory planning methods used in simulation as described in Section xxx. Instead, we employ teleoperation so that a human operator may demonstrate a task. Low control gains are used during teleoperation so that impacts do not cause an excessive control effort. The human in the loop can intuitively compensate for the poor control gains so that complex manipulation tasks are possible. Furthermore, the resulting trajectory is guaranteed to be coherant with the dynamics of the robots, and can be used as a reference for an RS controller.
 
-    \textbf{VR device:} Teleoperation requires an interface between the operator and the robot. This work uses the HTV Vive VR handheld devices for the interface. With the openVR ibrary, the following signals can extracted from the VR devices during a demonstration: rotation $R_{dem}$, angular velocity $\omega_{dem}$, position $p_{dem}$, and velocity $v_{dem}$.
+    \textbf{VR device:} Teleoperation requires an interface between the operator and the robot. This work uses the HTV Vive VR handheld devices for the interface. With the openVR library, the following signals can extracted from the VR devices during a demonstration: rotation $R_{dem}$, angular velocity $\omega_{dem}$, position $p_{dem}$, and velocity $v_{dem}$.
 
-    \textbf{Teleoperation controller:}
-    During teleoperation, the goal is to track the VR device and record the trajectory of the robot, i.e., save the recording. This is achieved using a QP controller as described in section \ref{sec:QP}.
-
-     \textbf{Impedance task:} Recall that, for the end effector task \eqref{eq:eetask}, the contact wrench $\mathcal{F}$ is related to the rotation and position errors through the matrix $K^-1JM^{-1}J^T$. This is problematic in the context of intuitive teleoperation; since the operator has no sense of $JM^{-1}J^T$, performing teleoperation tasks in contact becomes practically impossible.
-     An alternative can be found in impedance control -- an approach that has been proven in the context of object manipulation and teleoperation. This section describes the formulation of an impedance task.
+    \textbf{Impedance task:} Recall that, for the end effector task \eqref{eq:eetask}, the contact wrench $\mathcal{F}$ is related to the rotation and position errors through the matrix $K^-1JM^{-1}J^T$. This is problematic in the context of intuitive teleoperation; since the operator has no sense of $JM^{-1}J^T$, performing teleoperation tasks in contact becomes practically impossible. An alternative can be found in impedance control -- an approach that has been proven in the context of object manipulation and teleoperation. This section describes the formulation of an impedance task.
 
     It is preferable to apply a virtual impedance in Cartesian space rather than enforcing a virtual impedance at each joint, as this is more intuitive when tuning task weights and gains, or when performing teleoperation. The impedance should then act on the Cartesian pose of a body, i.e., $R$ and $p$. 
 
-     An example of a virtual impedance is given by
-         \begin{equation} \label{eq:impedance_desired}
-     \Lambda  \begin{bmatrix} \alpha   \\ a  \end{bmatrix} + D \begin{bmatrix} \omega - {\omega_d} \\ v - v_d \end{bmatrix}  + K \begin{bmatrix} -(\log({R}_dR^T))^{\vee } \\p - {p_d}  \end{bmatrix} = 0
-     \end{equation}
+    An example of a virtual impedance is given by
+    \begin{equation} \label{eq:impedance_desired}
+    \Lambda  \begin{bmatrix} \alpha   \\ a  \end{bmatrix} + D \begin{bmatrix} \omega - {\omega_d} \\ v - v_d \end{bmatrix}+ K \begin{bmatrix} -(\log({R}_dR^T))^{\vee } \\p - {p_d}\end{bmatrix} = 0
+    \end{equation}
     with Cartesian-space inertia matrix $\Lambda$. 
 
     Stiffness $K$ is typically chosen as a diagonal matrix. The damping matrix is determined following $D = 2(\Lambda K)^{\frac{1}{2}}$ which guarantees stable behavior when $K$ and $\Lambda$ are symmetric~\cite{albu-schafferCartesianImpedanceControl2003}. 
@@ -245,10 +232,43 @@ D \begin{bmatrix} \omega_d - {}{\omega} \\ v_d - v \end{bmatrix}  + K \begin{bma
            \begin{align} \label{eq:imp_closeloop_} 
     J^{-T}MJ^{-1}\begin{bmatrix} \alpha \\ a \end{bmatrix}- D \begin{bmatrix} \omega_d - {}{\omega} \\ v_d - v \end{bmatrix}  - K \begin{bmatrix}(\log({R}_dR^T))^{\vee }  \\p_d - {p}  \end{bmatrix}=\mathcal{F},
       \end{align}
-where the contact wrench is now related to the rotation and tracking errors through the diagonal stiffness matrix -- a relation that is much more intuitive to the operator compared to the end effector task. This comes at the cost of worse tracking during free motion however, since the relation of the rotation and position error with the accelerations has become more convoluted. Nevertheless, having good control over the contact forces is prefered because since the accelerations convert to zero in steady state while the contact forces do not. (\textcolor{red}{how to improve this explanation?})
+    where the contact wrench is now related to the rotation and tracking errors through the diagonal stiffness matrix -- a relation that is much more intuitive to the operator compared to the end effector task. This comes at the cost of worse tracking during free motion however, since the relation of the rotation and position error with the accelerations has become more convoluted. Nevertheless, having good control over the contact forces is prefered since the accelerations convert to zero in steady state while the contact forces do not. (\textcolor{red}{how to improve this explanation?})
+
+    \textbf{Teleoperation QP controller:}
+    During teleoperation, the goal is to track the VR device and record the trajectory of the robot, i.e., save the recording. This is achieved with a QP controller utilizing an impedance task as described in \eqref{eq:e_imp_}. Furthermore a posture task on the first joint, derived from \eqref{eq:e_pos}, prevents a joint redundancy. The QP scheme during recording is then given by
+
+    \begin{align} \label{eq:qp_rec} 
+    \ddot{q}_{rec} = \min\limits_{\ddot{q}\in\chi }\left \|  \begin{bmatrix}
+    \alpha(\ddot{q})\\ 
+    a(\ddot{q})
+    \end{bmatrix} - \Lambda^{-1}f_{rec} \right \| + \left \| \ddot{q}_1-\beta_{rec} \right \|
+      \end{align}
+    \begin{align} 
+    f_{rec} =D_{rec} \begin{bmatrix}
+    \omega_{dem} - \omega_{rec}
+    \\ 
+    v_{dem}-v_{rec}
+    \end{bmatrix} + K_{rec} \begin{bmatrix}
+    (\log({R_{dem}}R_{rec}^T))^{\vee }\\
+    p_{dem}-p_{rec}
+    \end{bmatrix}
+    \end{align}
+    \begin{align} 
+    \beta_{rec} = 2\sqrt{k_{rec}}\left [ -\dot{q}_{1,rec}  \right ] + k_{rec}\left [ -q_{1,rec}  \right ]
+    \end{align}
+
+    This QP scheme is visualized in Figure x. During the recording, eight signals are saved. This includes $R_{rec}$,$p_{rec}$, $q_{1,rec}$, $\omega_{rec}$, $v_{rec}$, and $\dot{q}_{1,rec}$. Furthermore the signals $f_{rec}$ and $\beta_{rec}$ are saved as they can potentially be used as a feedforward reference. Note that $f_{rec}$ is also essential for replecating contact forces, as these are not captured otherwise.
+
+    \begin{figure*}[b]
+
+    \includegraphics[trim={1cm 23.3cm 5cm 1cm}, clip]{Graphics/qp.pdf}
+    %\includegraphics[trim={1cm 17.8cm 5cm 6.5cm}, clip]{Graphics/qp.pdf}
+    \caption{Visualization of the QP scheme for recording a reference through demonstration.}
+    \label{figurelabel}
+   \end{figure*}
 
     \subsection{Reference spreading formulation}
-
+    \lipsum[2-30]
 % Experimental validation
     \section{Experimental validation}
     \subsection{Implementation}
