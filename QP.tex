@@ -170,9 +170,11 @@ K \quad \text{Impedance stiffness matrix} \\
 
 \text{\textbf{Reference Spreading}}\\
 \varphi  \quad \text{Time of impact}\\
+\Delta \varphi \; \text{Offset between measured impact and reference extension}\\
 \gamma  \quad \text{Normalized time since impact}\\
 T  \quad \text{Duration of interim impact mode}\\
-m \quad \text{Intermediate impact mode selector (0: no RS, 1: Jari, 2: Sven, 3: mixing)}\\
+m \quad \text{RS mode selector (-1: no RS, 
+0: no interim, 1: Jari, 2: Sven, 3: mixing)}\\
 j \quad \text{Number of jumps that have occured}\\\\
 \text{\textbf{Sub- and superscripts}}\\
 (\cdot)_{dem} \quad \text{Signals from VR device during recording}\\
@@ -223,137 +225,156 @@ p_{ref}-p_{rep}
 \\
 \section*{Reference Extending}
 $\begin{array}{l}
-S_{hold}(x,\varphi,t,j) 
+
+$$\varphi_{rec}^- = \varphi_{rec}(j)+\Delta \varphi$$\\
+$$\varphi_{rec}^+ = \varphi_{rec}(j+1)-\Delta \varphi$$\\
+\\
+$$\Omega = \begin{bmatrix}
+0 & -\omega_3 & \omega_2\\ 
+\omega_3 & 0 &-\omega_1 \\ 
+ -\omega_2 & \omega_1 & 0
+\end{bmatrix}$$\\
+\\
+S_{hold}(x) 
 = \begin{cases} 
-x(\varphi_j),& \text{if } t< \varphi_j\\
-x(\varphi_j),& \text{if } t> \varphi_{j+1} \\
+x(\varphi_{rec}^-),& \text{if } t< \varphi_{rec}^-\\
+x(\varphi_{rec}^+),& \text{if } t> \varphi_{rec}^+\\
 x(t) ,& \text{otherwise}\\
 \end{cases}\\
 \\
 
-S_{integ}(x,y,\varphi,t,j) 
-= \begin{cases} 
-x(\varphi_j)+y(\varphi_j)(t-\varphi_j),& \text{if } t< \varphi_j\\
-x(\varphi_{j+1})+y(\varphi_{j+1})(t-\varphi_{j+1}),& \text{if } t> \varphi_{j+1}  \\
-x(t) ,& \text{otherwise}\\
+S_{integ}(x,y) 
+= S_{hold}(x)+\begin{cases} 
+y(\varphi_{rec}^-)(t-\varphi_{rec}^+),& \text{if } t< \varphi_{rec}^-\\
+y(\varphi_{rec}^+)(t-\varphi_{rec,j}^-),& \text{if } t> \varphi_{rec}^+\\
+0 ,& \text{otherwise}\\
 \end{cases}\\
 \\
 
-S_{rot}(R,\omega,\varphi,t,j) 
+S_{rot}(R,\omega) 
 = \begin{cases} 
-R(\varphi_j)e^{\omega(\varphi_j)(t-\varphi_j)},& \text{if } t< \varphi_j\\
-R(\varphi_{j+1})e^{\omega(\varphi_{j+1})(t-\varphi_{j+1})},& \text{if } t> \varphi_{j+1}\\
+R(\varphi_{rec}^-)e^{\Omega(\varphi_{rec}^-)(t-\varphi_{rec}^-)},& \text{if } t< \varphi_{rec}^-\\
+R(\varphi_{rec}^+)e^{\Omega(\varphi_{rec}^+)(t-\varphi_{rec}^+)},& \text{if } t> \varphi_{rec}^+\\
 R(t) ,& \text{otherwise}\\
 \end{cases}\\
 \\
 
 \\
 
-R_{ext,j}(t) = S_{rot}(R_{rec},\omega_{rec},\varphi_{rec},t,j)\\
+R_{ext,j}(t,j) = S_{rot}(R_{rec}(t),\omega_{rec}(t))\\
 
 \\
 \begin{bmatrix} 
-p_{ext,j}(t)  \\
- q_{1,ext,j}(t) 
+p_{ext,j}(t,j)  \\
+ q_{1,ext,j}(t,j) 
 \end{bmatrix} = S_{integ} \left (
 \begin{bmatrix} 
-p_{rec}\\
- q_{1,rec}
+p_{rec}(t)\\
+ q_{1,rec}(t)
 \end{bmatrix} 
 ,\begin{bmatrix} 
-v_{rec}\\
- \dot{q}_{1,rec}
+v_{rec}(t)\\
+ \dot{q}_{1,rec}(t)
 \end{bmatrix} 
-,\varphi_{rec},t,j \right )\\
+ \right )\\
 \\
 
 \\
 \begin{bmatrix} 
-\omega_{rec}(t)\\
-v_{ext,j}(t)\\
- \dot{q}_{1,ext,j}(t)\\
- f_{ext,j}(t)\\
- \beta_{ext,j}(t)
+\omega_{rec}(t,j)\\
+v_{ext}(t,j)\\
+ \dot{q}_{1,ext}(t,j)\\
+ f_{ext}(t,j)\\
+ \beta_{ext}(t,j)
 \end{bmatrix} = S_{hold} \left (
 \begin{bmatrix} 
-\omega_{rec}\\
-v_{rec}\\
- \dot{q}_{1,rec}\\
- f_{rec}\\
- \beta_{rec}
+\omega_{rec}(t)\\
+v_{rec}(t)\\
+ \dot{q}_{1,rec}(t)\\
+ f_{rec}(t)\\
+ \beta_{rec}(t)
 \end{bmatrix}
-,\varphi_{rec},t,j \right )\\
+\right )\\
 \\
 
 \end{array}$
 
+Note that the functions $S_{hold}$, $S_{integ}$, and $S_{rot}$ als require $\varphi_{rec}$ to be evaluated. This dependancy is excluded from notation for brevity. 
 \section*{Reference Switching}
 
 $\begin{array}{l}
 \gamma = \frac{t-\varphi_{rep,j}}{T}\\
 
-U_{jump}(x,x_{ext},\gamma,m,j) = \begin{cases} 
-x_{ext,j},& \text{if } \gamma \geq 1\\
-
-x_{ext,j},& \text{if } (\gamma < 1)\wedge(m=0)\\ 
+U_{jump}(x_{rep},x_{ext}) = \begin{cases} 
+x_{ext}(t,j_{rec}),& \text{if } m = -1\\
+x_{ext}(t,j_{rep}),& \text{if } m = 0\\
+x_{ext}(t,j_{rep}),& \text{if } (\gamma \geq 1)\wedge (m \notin \{ -1,0 \} )\\
+x_{ext}(t,j_{rep}),& \text{if } (\gamma < 1)\wedge(m=0)\\ 
 x,& \text{if } (\gamma < 1)\wedge(m=1)\\ 
 0,& \text{if } (\gamma < 1)\wedge(m=2)\\ 
-\gamma x_{ext,j} ,& \text{if } (\gamma < 1)\wedge(m=3)\\ \end{cases}\\\\
-\\
-U_{cont}(x_{ext},\gamma,m,j) = \begin{cases} 
-x_{ext,j},& \text{if } \gamma \geq 1\\
-
-x_{ext,j},& \text{if } (\gamma < 1)\wedge(m=0)\\ 
-x_{ext,j-1},& \text{if } (\gamma < 1)\wedge(m=1)\\ 
-x_{ext,j-1},& \text{if } (\gamma < 1)\wedge(m=2)\\ 
-\gamma x_{ext,j}+ (1-\gamma)x_{ext,j-1} ,& \text{if } (\gamma < 1)\wedge(m=3)\\ \end{cases}\\\\\\
-
-
-
-U_{rot}(R_{ext},\gamma,m,j) = \begin{cases} 
-R_{ext,j},& \text{if } \gamma \geq 1\\
-
-R_{ext,j},& \text{if } (\gamma < 1)\wedge(m=0)\\ 
-R_{ext,j-1},& \text{if } (\gamma < 1)\wedge(m=1)\\ 
-R_{ext,j-1},& \text{if } (\gamma < 1)\wedge(m=2)\\ 
-R_{ext,j-1}(R^T_{ext,j-1}R_{ext,j})^\gamma,& \text{if } (\gamma < 1)\wedge(m=3)\\ \end{cases}\\\\
-
+\gamma x_{ext}(t,j_{rep}) ,& \text{if } (\gamma < 1)\wedge(m=3)\\ \end{cases}\\\\
 \\
 
-R_{ref} = U_{rot}(R_{ext},\gamma,m,j)\\
+U_{cont}(x_{ext}) = \begin{cases} 
+x_{ext}(t,j_{rec}),& \text{if } m = -1\\
+x_{ext}(t,j_{rep}),& \text{if } m = 0\\
+x_{ext}(t,j_{rep}),& \text{if } (\gamma \geq 1)\wedge (m \notin \{ -1,0 \} )\\
+x_{ext}(t,j_{rep}) ,& \text{if } (\gamma < 1)\wedge(m=0)\\ 
+x_{ext}(t,j_{rep}-1) ,& \text{if } (\gamma < 1)\wedge(m=1)\\ 
+x_{ext}(t,j_{rep}-1) ,& \text{if } (\gamma < 1)\wedge(m=2)\\ 
+\gamma x_{ext}(t,j_{rep})+ (1-\gamma)x_{ext}(t,j_{rep}-1) ,& \text{if } (\gamma < 1)\wedge(m=3)\\ \end{cases}\\\\\\
+\\
+
+
+U_{cont}(R_{ext}) = \begin{cases} 
+R_{ext}(t,j_{rec}),& \text{if } m = -1\\
+R_{ext}(t,j_{rep}),& \text{if } m = 0\\
+R_{ext}(t,j_{rep}),& \text{if } (\gamma \geq 1)\wedge (m \notin \{ -1,0 \} )\\
+R_{ext}(t,j_{rep}) ,& \text{if } (\gamma < 1)\wedge(m=0)\\ 
+R_{ext}(t,j_{rep}-1) ,& \text{if } (\gamma < 1)\wedge(m=1)\\ 
+R_{ext}(t,j_{rep}-1) ,& \text{if } (\gamma < 1)\wedge(m=2)\\ 
+R_{ext}(t,j_{rep}-1)(R^T_{ext}(t,j_{rep}-1)R_{ext}(t,j_{rep}))^\gamma ,& \text{if } (\gamma < 1)\wedge(m=3)\\ \end{cases}\\\\\\
+
+R_{ref}(t) = U_{rot}(R_{ext}(t,j))\\
 
 \\
 \begin{bmatrix} 
-p_{ref}  \\
- q_{1,ref} \\
- \dot{q}_{1,ref}\\
- f_{ref}\\
- \beta_{ref}
+p_{ref}(t) \\
+ q_{1,ref}(t) \\
+ \dot{q}_{1,ref}(t)\\
+ f_{ref}(t)\\
+ \beta_{ref}(t)
 \end{bmatrix} = U_{cont} \left (
 \begin{bmatrix} 
-p_{ext}\\
- q_{1,ext}\\
- \dot{q}_{1,ext}\\
- f_{ext}\\
- \beta_{ext}
+p_{ext}(t,j)\\
+ q_{1,ext}(t,j)\\
+ \dot{q}_{1,ext}(t,j)\\
+ f_{ext}(t,j)\\
+ \beta_{ext}(t,j)
 \end{bmatrix} 
-,\gamma, m , j \right )\\
+ \right )\\
 \\
 
 \\
 \begin{bmatrix} 
-\omega_{ref}\\
-v_{ref}\\
+\omega_{ref}(t)\\
+v_{ref}(t)\\
 \end{bmatrix} = U_{jump} \left (
+
 \begin{bmatrix} 
-\omega_{ext,j}(t)\\
-v_{ext,j}(t)\\
+\omega_{rep}(t)\\
+v_{rep}(t)\\
+\end{bmatrix},
+
+\begin{bmatrix} 
+\omega_{ext}(t,j)\\
+v_{ext}(t,j)\\
 \end{bmatrix}
-,\varphi_{rec},\gamma,m,j \right )\\
+
+\right )\\
 \\
-
 \end{array}$
-
+Note that the functions $U_{jump}$, $U_{cont}$, and $U_{rot}$ als require $j_{rep}$, $j_{rec}$, $\gamma$ and $m$ to be evaluated. These dependencies are excluded from notation for brevity. 
 \newpage
 
 \section*{Miscelaneous}
