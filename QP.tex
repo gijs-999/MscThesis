@@ -299,7 +299,7 @@ v_{rec}(t)\\
 
 \end{array}$
 
-Note that the functions $S_{hold}$, $S_{integ}$, and $S_{rot}$ als require $\varphi_{rec}$ to be evaluated. This dependancy is excluded from notation for brevity. 
+Note that the functions $S_{hold}$, $S_{integ}$, and $S_{rot}$ also require $\varphi_{rec}$ to be evaluated. This dependancy is excluded from notation for brevity. 
 \section*{Reference Switching}
 
 $\begin{array}{l}
@@ -341,14 +341,11 @@ R_{ref}(t) = U_{rot}(R_{ext}(t,j))\\
 \begin{bmatrix} 
 p_{ref}(t) \\
  q_{1,ref}(t) \\
- \dot{q}_{1,ref}(t)\\
  f_{ref}(t)\\
  \beta_{ref}(t)
 \end{bmatrix} = U_{cont} \left (
 \begin{bmatrix} 
 p_{ext}(t,j)\\
- q_{1,ext}(t,j)\\
- \dot{q}_{1,ext}(t,j)\\
  f_{ext}(t,j)\\
  \beta_{ext}(t,j)
 \end{bmatrix} 
@@ -359,22 +356,25 @@ p_{ext}(t,j)\\
 \begin{bmatrix} 
 \omega_{ref}(t)\\
 v_{ref}(t)\\
+ \dot{q}_{1,ref}(t,j)\\
 \end{bmatrix} = U_{jump} \left (
 
 \begin{bmatrix} 
 \omega_{rep}(t)\\
 v_{rep}(t)\\
+ \dot{q}_{1,rep}(t)\\
 \end{bmatrix},
 
 \begin{bmatrix} 
 \omega_{ext}(t,j)\\
 v_{ext}(t,j)\\
+ \dot{q}_{1,ext}(t,j)\\
 \end{bmatrix}
 
 \right )\\
 \\
 \end{array}$
-Note that the functions $U_{jump}$, $U_{cont}$, and $U_{rot}$ als require $j_{rep}$, $j_{rec}$, $\gamma$ and $m$ to be evaluated. These dependencies are excluded from notation for brevity. 
+Note that the functions $U_{jump}$, $U_{cont}$, and $U_{rot}$ also require $j_{rep}$, $j_{rec}$, $\gamma$ and $m$ to be evaluated. These dependencies are excluded from notation for brevity. 
 \newpage
 
 \section*{Miscelaneous}
@@ -390,4 +390,5 @@ a(\ddot{q})
 \Lambda^{-1} = J^TM^{-1}J
 \end{array}$
 
+Need a different symbol for $\dot{q}_1$ since it is not always the derivative of $q_1$. 
 \end{document}
