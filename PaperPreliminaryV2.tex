@@ -146,11 +146,11 @@
     \end{equation} 
 
     \textbf{End effector task:}
-    QP control allows for a trajectory to not only be defined in the joint space, but also in the Cartesian end effector space. This is useful whern the position vector $p$ and rotation matrix $R$ should be controlled. Velocity and accelerations are represented by $\omega$ and $\alpha$ for rotations, and by $v$ and $a$ for translations. We can then define an end effector task, based on the orientation and position task in \cite{cisnerosRobustHumanoidControl2018}, following 
+    QP control allows for a trajectory to not only be defined in the joint space, but also in the Cartesian end effector space. This is useful whern the position vector $p$ and rotation matrix $R$ should be controlled. Velocity and accelerations are represented by $\omega$ and $\alpha$ for rotations, and by $v$ and $a$ for translations. We can then define an end effector task error, based on the orientation and position task in \cite{cisnerosRobustHumanoidControl2018}, following 
       \begin{align} \label{eq:eetask} e_{ee}(q) = 
     \begin{bmatrix} \alpha(\ddot{q}) \\ a(\ddot{q}) \end{bmatrix}
     - D \begin{bmatrix} \omega_d - {\omega} \\ v_d - v \end{bmatrix}  - K \begin{bmatrix}(\log({R}_dR^T))^{\vee }  \\p_d - {p}  \end{bmatrix}
-        \end{align} with diagonal damping and stiffness matrices $D$ and $K$. The subscript $d$ indicates a desired value. Furthermore, $\alpha$ and $a$ are related to $\ddot{q}$ with the Jacobian $J$ and its derivative $\dot{J}$, i.e.,
+        \end{align} with diagonal damping and stiffness matrices $D$ and $K$. The subscript $d$ indicates a desired value. Furthermore, $\alpha$ and $a$ are related to $\ddot{q}$ via the Jacobian $J$ and its derivative $\dot{J}$, i.e.,
     \begin{equation}\label{eq:jacobian}
     \begin{bmatrix} \omega \\ v \end{bmatrix}=J\dot{q},
     \quad 
@@ -169,10 +169,10 @@
     \begin{align} \label{eq:ee_closeloop} 
     \begin{bmatrix} \alpha \\ a \end{bmatrix}- D \begin{bmatrix} \omega_d - {}{\omega} \\ v_d - v \end{bmatrix}  - K \begin{bmatrix}(\log({R}_dR^T))^{\vee }  \\p_d - {p}  \end{bmatrix}=JM^{-1}J^T\mathcal{F}.
     \end{align}
-    Note that the rotation and position errors are related to the contact wrench through the matrix $K^{-1}JM^{-1}J^T$.
+    Note that, in steady state, the rotation and position errors are equal to product of $-K^{-1}JM^{-1}J^T$ and the contact wrench.
 
-    \textbf{Posture task:} In object manipulation, the 6-DoF end effector pose is of particular interest. Robot arms that mimic human anatomy often posses 7 DoF's, however. This results in a DoF redundancy, which should be addressed for a well-posed QP scheme. The additional DoF can be imposed by a so-called posture task described in \cite{cisnerosRobustHumanoidControl2018}. This task attaches a critically-damped spring and damper with stiffness $k$ to a virtual unit mass. The results in a target joint acceleration $\beta$, i.e.,
-    \begin{equation} \label{eq:beta} \beta_n = 2\sqrt{k}(\dot{q}_{n,d}-\dot{q}) +k(q_{n,d}-q_n)
+    \textbf{Posture task:} In object manipulation, the 6-DoF end effector pose is of particular interest. Robot arms that mimic human anatomy often posses 7 DoF's, however. This results in a DoF redundancy, which should be addressed for a well-posed QP scheme. The additional DoF can be imposed by a so-called posture task described in \cite{cisnerosRobustHumanoidControl2018}. This task attaches a critically-damped spring and damper with stiffness $k$ to a virtual unit mass. This results in a target joint acceleration $\beta$, i.e.,
+    \begin{equation} \label{eq:beta} \beta_n = 2\sqrt{k}(\dot{q}_{n,d}-\dot{q}_n) +k(q_{n,d}-q_n)
     \end{equation}
     with joint index $n$. The task error is then given by
     \begin{equation} \label{eq:e_pos} e_{pos}(\ddot{q}) = 
@@ -204,7 +204,7 @@
 
     \textbf{VR device:} Teleoperation requires an interface between the operator and the robot. This work uses the HTV Vive VR handheld devices for the interface. With the openVR library, the following signals can extracted from the VR devices during a demonstration: rotation $R_{dem}$, angular velocity $\omega_{dem}$, position $p_{dem}$, and velocity $v_{dem}$.
 
-    \textbf{Impedance task:} Recall that, for the end effector task \eqref{eq:eetask}, the contact wrench $\mathcal{F}$ is related to the rotation and position errors through the matrix $K^-1JM^{-1}J^T$. This is problematic in the context of intuitive teleoperation; since the operator has no sense of $JM^{-1}J^T$, performing teleoperation tasks in contact becomes practically impossible. An alternative can be found in impedance control -- an approach that has been proven in the context of object manipulation and teleoperation. This section describes the formulation of an impedance task.
+    \textbf{Impedance task:} Recall that, for the end effector task \eqref{eq:eetask}, the contact wrench $\mathcal{F}$ is related to the rotation and position errors through the matrix $-K^-1JM^{-1}J^T$. This is problematic in the context of intuitive teleoperation; since the operator has no sense of $JM^{-1}J^T$, performing teleoperation tasks in contact becomes practically impossible. An alternative can be found in impedance control -- an approach that has been proven in the context of object manipulation and teleoperation. This section describes the formulation of an impedance task.
 
     It is preferable to apply a virtual impedance in Cartesian space rather than enforcing a virtual impedance at each joint, as this is more intuitive when tuning task weights and gains, or when performing teleoperation. The impedance should then act on the Cartesian pose of a body, i.e., $R$ and $p$. 
 
@@ -232,7 +232,7 @@
            \begin{align} \label{eq:imp_closeloop_} 
     J^{-T}MJ^{-1}\begin{bmatrix} \alpha \\ a \end{bmatrix}- D \begin{bmatrix} \omega_d - {}{\omega} \\ v_d - v \end{bmatrix}  - K \begin{bmatrix}(\log({R}_dR^T))^{\vee }  \\p_d - {p}  \end{bmatrix}=\mathcal{F},
       \end{align}
-    where the contact wrench is now related to the rotation and tracking errors through the diagonal stiffness matrix -- a relation that is much more intuitive to the operator compared to the end effector task. This comes at the cost of worse tracking during free motion however, since the relation of the rotation and position error with the accelerations has become more convoluted. Nevertheless, having good control over the contact forces is prefered since the accelerations convert to zero in steady state while the contact forces do not. (\textcolor{red}{how to improve this explanation?})
+    where the contact rotation and position error in steady are now the product of $-K^{-1}$ and the contact wrench -- a relation that is much more intuitive to the operator than it is for the end effector task. This comes at the cost of worse tracking during free motion however, since the relation of the rotation and position error with the accelerations has become more convoluted. Nevertheless, this does not affect the steady state where the accelerations converge to zero while the contact forces do not. (\textcolor{red}{does this explanation make sense?})
 
     \textbf{Teleoperation QP controller:}
     During teleoperation, the goal is to track the VR device and record the trajectory of the robot, i.e., save the recording. This is achieved with a QP controller utilizing an impedance task as described in \eqref{eq:e_imp_}. Furthermore a posture task on the first joint, derived from \eqref{eq:e_pos}, prevents a joint redundancy. The QP scheme during recording is then given by
