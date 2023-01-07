@@ -212,12 +212,14 @@
 
 \lipsum[3-10]
     \subsection{Trajectory planning via teleoperation}
-    Due to the absence of an environment model, we cannot replicate the trajectory planning methods used in simulation as described in Section xxx. Alternatively, a human could demonstrate tasks through teleoperation. The trajectory tracked by the robot during demonstration could then be used as reference as it is guaranteed to be coherent with the robot's dynamics. This section frormulates a teleoperation controller and how it can be used to plan trajectories.
+    Due to the absence of an environment model, the velocity jump during an impact cannot be determined analytically, and hence it is not possible to replicate the trajectory planning methods used in simulation as described in Section xxx. Instead, we employ teleoperation so that a human operator may demonstrate a task. Low control gains are used during teleoperation so that impacts do not cause an excessive control effort. The humans in the loop allows for the executation of complex manipulation tasks, despite the poor control gains. Furthermore, the resulting trajectory is guaranteed to be coherant with the dynamics of the robots, and can be used as a reference for an RS controller.
 
-    The teleoperation controller is based on the HTV Vive VR handheld devices. These VR devices provide rotation $R_{VR}$, angular velocity $\omega_{VR}$, position $p_{VR}$, and velocity $v_{VR}$. These signals will be used with the QP framework described in Section \ref{sec:QP} will be used for the teleoperation controller. Substituing the desired values into \ref{eq:e_imp}
+    \textbf{VR device:} Teleoperation requires an interface between the operator and the robot. This work uses the HTV Vive VR handheld devices for the interface. With the openVR ibrary, the following signals can extracted from the VR devices during a demonstration: rotation $R_{dem}$, angular velocity $\omega_{dem}$, position $p_{dem}$, and velocity $v_{dem}$.
 
+    \textbf{Teleoperation controller:}
+    During teleoperation, the goal is to track the VR device and record the trajectory of the robot, i.e., save the recording. This is achieved using a QP controller as described in section \ref{sec:QP}.
 
-
+    In this context, the impedance task \eqref{eq:e_imp_} becomes 
 
     \subsection{Reference spreading formulation}
 
